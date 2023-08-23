@@ -39,7 +39,7 @@ go work文件允许在同一个项目下跨go module开发。go mod文件描述�
 每次提交新代码需要注意的地方：
 
 1. 查看README.md描述是否需要修改。
-2. 使用Replace in Files修改版本号。
+2. 使用Find in Files修改4处版本号及测试文件。
 3. 运行go mod tidy更新依赖项。
 4. 本地运行go test ./...;golangci-lint run ./...单元测试和语法检查是否通过。
 5. Eyes_Docs拉取和项目相同分支并修改对应描述。
