@@ -2,9 +2,9 @@ package examples
 
 import (
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_metric"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/version"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_metric"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/instrument"
@@ -56,7 +56,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 }
 
 func FileMetricInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	metricClient := public.NewFileClient("./AnyRobotMetric.json")
 	metricExporter := ar_metric.NewExporter(metricClient)
 	ar_metric.MetricProvider = sdkmetric.NewMeterProvider(
@@ -67,7 +67,7 @@ func FileMetricInit() {
 }
 
 func ConsoleMetricInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	metricClient := public.NewConsoleClient()
 	metricExporter := ar_metric.NewExporter(metricClient)
 	ar_metric.MetricProvider = sdkmetric.NewMeterProvider(
@@ -78,7 +78,7 @@ func ConsoleMetricInit() {
 }
 
 func StdoutMetricInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	metricClient := public.NewStdoutClient("./AnyRobotMetric.json")
 	metricExporter := ar_metric.NewExporter(metricClient)
 	ar_metric.MetricProvider = sdkmetric.NewMeterProvider(
@@ -89,11 +89,10 @@ func StdoutMetricInit() {
 }
 
 func HTTPMetricInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	metricClient := public.NewHTTPClient(public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"),
 		public.WithCompression(1), public.WithTimeout(10*time.Second), public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
 	metricExporter := ar_metric.NewExporter(metricClient)
-	public.SetServiceInfo("YourServiceName", "1.0.0", "983d7e1d5e8cda64")
 	metricProvider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(10*time.Second), sdkmetric.WithTimeout(10*time.Second))),
 		sdkmetric.WithResource(ar_metric.MetricResource()),
@@ -157,7 +156,7 @@ func HTTPExample() {
 
 // WithAllExample 修改client所有入参。
 func WithAllExample() {
-	public.SetServiceInfo("YourServiceName", "1.0.0", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	ctx := context.Background()
 	metricClient := public.NewHTTPClient(public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"),
 		public.WithCompression(1), public.WithTimeout(10*time.Second), public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))

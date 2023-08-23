@@ -3,7 +3,7 @@ package examples
 import (
 	"context"
 	"database/sql"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
 	_ "github.com/go-sql-driver/mysql"
 )
 

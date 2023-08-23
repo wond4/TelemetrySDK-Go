@@ -3,9 +3,9 @@ package examples
 import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/eventsdk"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_event"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_event"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -45,7 +45,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 }
 
 func FileEventInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	eventClient := public.NewFileClient("./AnyRobotEvent.json")
 	eventExporter := ar_event.NewExporter(eventClient)
 	eventProvider := eventsdk.NewEventProvider(eventsdk.Exporters(eventExporter), ar_event.EventResource())
@@ -53,7 +53,7 @@ func FileEventInit() {
 }
 
 func ConsoleEventInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	eventClient := public.NewConsoleClient()
 	eventExporter := ar_event.NewExporter(eventClient)
 	eventProvider := eventsdk.NewEventProvider(eventsdk.Exporters(eventExporter), ar_event.EventResource())
@@ -61,7 +61,7 @@ func ConsoleEventInit() {
 }
 
 func StdoutEventInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	eventClient := public.NewStdoutClient("./AnyRobotEvent.json")
 	eventExporter := ar_event.NewExporter(eventClient)
 	eventProvider := eventsdk.NewEventProvider(eventsdk.Exporters(eventExporter), ar_event.EventResource())
@@ -69,7 +69,7 @@ func StdoutEventInit() {
 }
 
 func HTTPEventInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	eventClient := public.NewHTTPClient(
 		public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"),
 		public.WithCompression(0),
@@ -137,13 +137,12 @@ func HTTPExample() {
 
 // WithAllExample 修改client所有入参。
 func WithAllExample() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "YourServiceVersion", "YourServiceInstanceID")
 	ctx := context.Background()
 	// eventClient := public.NewStdoutClient("./AnyRobotEvent.txt")
 	eventClient := public.NewHTTPClient(public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-983d7e1d5e8cda64/events"),
 		public.WithCompression(0), public.WithTimeout(10*time.Second), public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
 	eventExporter := ar_event.NewExporter(eventClient)
-	public.SetServiceInfo("YourServiceName", "1.0.0", "983d7e1d5e8cda64")
 	eventProvider := eventsdk.NewEventProvider(eventsdk.Exporters(eventExporter, eventsdk.GetDefaultExporter()), ar_event.EventResource())
 	eventsdk.SetEventProvider(eventProvider)
 
