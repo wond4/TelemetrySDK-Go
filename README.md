@@ -44,3 +44,4 @@ go work文件允许在同一个项目下跨go module开发。go mod文件描述�
 4. 本地运行go test ./...;golangci-lint run ./...单元测试和语法检查是否通过。
 5. Eyes_Docs拉取和项目相同分支并修改对应描述。
 6. 提交合并主线拉取请求，和项目负责人联系审批。
+7. 合并主线后拉取release分支和标记。例如新建2.8.1分支，创建3个标记：event/2.8.1 exporter/2.8.1 span/2.8.1 。

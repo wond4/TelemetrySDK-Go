@@ -1,7 +1,7 @@
 package eventsdk
 
 import (
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/custom_errors"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/v2/custom_errors"
 	"encoding/json"
 	"errors"
 	"github.com/oklog/ulid/v2"
