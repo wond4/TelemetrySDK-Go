@@ -1,9 +1,3 @@
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.6.4 h1:5fo0GCu2rswjeUz70u4QYk4dMOqMo2cJap/7ZgWiocA=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.6.4/go.mod h1:x4ION8llOP/2GxWcgdv7K/Ko5ntjH6nYFOUB9CCqUfg=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.6.4 h1:vSL6GtolekDvjx/mqAg7BqQORAlmshA2gQwcKDKUAgk=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.6.4/go.mod h1:xKwQ/MbNE/tJrb0wRTFeUDPQl8F/bEHzqwW+JPPfi1U=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.0 h1:5S0Y0hmkGB0q5rw4l4sSE4P1BnoaAfGWYyiT9VMOxWg=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.0/go.mod h1:xKwQ/MbNE/tJrb0wRTFeUDPQl8F/bEHzqwW+JPPfi1U=
 github.com/agiledragon/gomonkey/v2 v2.9.0 h1:PDiKKybR596O6FHW+RVSG0Z7uGCBNbmbUXh3uCNQ7Hc=
 github.com/agiledragon/gomonkey/v2 v2.9.0/go.mod h1:ap1AmDzcVOAz1YpeJ3TCzIgstoaWLA6jbbgxfB4w2iY=
 github.com/bytedance/sonic v1.5.0/go.mod h1:ED5hyg4y6t3/9Ku1R6dU/4KyJ48DZ4jPhfY1O2AihPM=
