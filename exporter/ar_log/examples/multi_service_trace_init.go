@@ -15,7 +15,6 @@ func FileTraceInit() {
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter,
-			sdktrace.WithBlocking(),
 			sdktrace.WithMaxExportBatchSize(1000)),
 		sdktrace.WithResource(ar_trace.TraceResource()))
 	otel.SetTracerProvider(tracerProvider)
@@ -27,7 +26,6 @@ func ConsoleTraceInit() {
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter,
-			sdktrace.WithBlocking(),
 			sdktrace.WithMaxExportBatchSize(1000)),
 		sdktrace.WithResource(ar_trace.TraceResource()))
 	otel.SetTracerProvider(tracerProvider)
@@ -39,7 +37,6 @@ func StdoutTraceInit() {
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter,
-			sdktrace.WithBlocking(),
 			sdktrace.WithMaxExportBatchSize(1000)),
 		sdktrace.WithResource(ar_trace.TraceResource()))
 	otel.SetTracerProvider(tracerProvider)
@@ -51,7 +48,6 @@ func HTTPTraceInit() {
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter,
-			sdktrace.WithBlocking(),
 			sdktrace.WithMaxExportBatchSize(1000)),
 		sdktrace.WithResource(ar_trace.TraceResource()))
 	otel.SetTracerProvider(tracerProvider)
