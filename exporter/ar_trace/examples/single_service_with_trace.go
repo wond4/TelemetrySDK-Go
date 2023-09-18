@@ -2,14 +2,18 @@ package examples
 
 import (
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"log"
 	"time"
+
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/version"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const result = "the answer is"
@@ -41,7 +45,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 }
 
 func FileTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewFileClient("./AnyRobotTrace.json")
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -52,7 +56,7 @@ func FileTraceInit() {
 }
 
 func ConsoleTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewConsoleClient()
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -63,7 +67,7 @@ func ConsoleTraceInit() {
 }
 
 func StdoutTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewStdoutClient("./AnyRobotTrace.json")
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -74,7 +78,7 @@ func StdoutTraceInit() {
 }
 
 func HTTPTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewHTTPClient(public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"))
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -119,7 +123,27 @@ func ConsoleExample() {
 func StdoutExample() {
 	StdoutTraceInit()
 	ctx := context.Background()
-	// 业务代码
+	//traceClient := public.NewStdoutClient("./AnyRobotTrace.txt")
+	attrs := []attribute.KeyValue{
+		attribute.String("job_id", "job-ea0ebc769228f873"),
+	}
+	jobResource := resource.NewWithAttributes("", attrs...)
+	resource.Merge(jobResource, ar_trace.TraceResource())
+	tempResource, err := resource.Merge(jobResource, ar_trace.TraceResource())
+	if err == nil {
+		jobResource = tempResource
+	}
+	traceExporter, _ := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint("127.0.0.1:13034"))
+	public.SetServiceInfo("YourServiceName", "1.0.0", "")
+	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithBatcher(traceExporter), sdktrace.WithResource(jobResource))
+
+	otel.SetTracerProvider(tracerProvider)
+	defer func() {
+		if err := tracerProvider.Shutdown(ctx); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	ctx, num := multiply(ctx, 2, 3)
 	ctx, num = multiply(ctx, num, 7)
 	ctx, num = add(ctx, num, 8)
@@ -141,7 +165,7 @@ func HTTPExample() {
 
 // WithAllExample 修改client所有入参。
 func WithAllExample() {
-	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	ctx := context.Background()
 	header := make(map[string]string)
 	header["self-defined"] = "some_header"
