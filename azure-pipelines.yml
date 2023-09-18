@@ -10,7 +10,7 @@ trigger:
     include:
       - "feature-*"
       - "feature/*"
-      - "develop"
+      - "master"
       - "release-*"
       - "release/*"
 
