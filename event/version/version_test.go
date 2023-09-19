@@ -7,6 +7,6 @@ import (
 
 func TestVersion(t *testing.T) {
 	convey.Convey("TestVersion", t, func() {
-		convey.So(EventInstrumentationVersion, convey.ShouldEqual, "2.8.0")
+		convey.So(EventInstrumentationVersion, convey.ShouldEqual, "2.7.0")
 	})
 }
