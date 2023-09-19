@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -30,7 +30,7 @@ func setTrace() {
 	tempResource, err := resource.Merge(jobResource, ar_trace.TraceResource())
 	if err == nil {
 		jobResource = tempResource
-	} 
+	}
 	//traceExporter, _ := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint("10.4.68.236:30013"))
 	traceClient := public.NewStdoutClient("./AnyRobotTrace.json")
 	traceExporter := ar_trace.NewExporter(traceClient)
@@ -40,7 +40,7 @@ func setTrace() {
 			sdktrace.WithExportTimeout(time.Hour)),
 		sdktrace.WithResource(jobResource),
 		sdktrace.WithSampler(
-		sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.2))),
+			sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.2))),
 	)
 	otel.SetTracerProvider(tracerProvider)
 	defer func() {
