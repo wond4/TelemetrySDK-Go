@@ -2,9 +2,6 @@ package examples
 
 import (
 	"context"
-	"log"
-	"time"
-
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_metric"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/version"
@@ -13,6 +10,8 @@ import (
 	"go.opentelemetry.io/otel/metric/instrument"
 	"go.opentelemetry.io/otel/metric/unit"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"log"
+	"time"
 )
 
 const result = "the answer is"
@@ -22,27 +21,11 @@ func add(ctx context.Context, x, y int64) (context.Context, int64) {
 	attrs := []attribute.KeyValue{
 		attribute.Key("用户信息").String("在线用户数"),
 	}
-	gauge, _ := ar_metric.Meter.Int64ObservableGauge("gauge：用户数峰值", instrument.WithUnit("1"), instrument.WithDescription("a simple gauge"))
-	gaugeTest := func(ctx context.Context, obsrv metric.Observer) error {
-		obsrv.ObserveInt64(gauge, 12, attrs...)
-		return nil
+	gauge, _ := ar_metric.Meter.AsyncInt64().Gauge("gauge：用户数峰值", instrument.WithUnit(unit.Dimensionless), instrument.WithDescription("a simple gauge"))
+	gaugeTest := func(ctx context.Context) {
+		gauge.Observe(ctx, 12, attrs...)
 	}
-	attrs1 := []attribute.KeyValue{
-		attribute.Key("息").String("数"),
-	}
-	gaugeTest1 := func(ctx context.Context, obsrv metric.Observer) error {
-		obsrv.ObserveInt64(gauge, 13, attrs1...)
-		return nil
-	}
-	_, _ = ar_metric.Meter.RegisterCallback(gaugeTest, gauge)
-	_, _ = ar_metric.Meter.RegisterCallback(gaugeTest1, gauge)
-
-	counter, _ := ar_metric.Meter.Int64ObservableCounter("CounterTest", instrument.WithUnit("1"), instrument.WithDescription("a simple gauge"))
-	CounterTest := func(ctx context.Context, obsrv metric.Observer) error {
-		obsrv.ObserveInt64(counter, 2, attrs...)
-		return nil
-	}
-	_, _ = ar_metric.Meter.RegisterCallback(CounterTest, counter)
+	_ = ar_metric.Meter.RegisterCallback([]instrument.Asynchronous{gauge}, gaugeTest)
 
 	// 业务代码
 	time.Sleep(100 * time.Millisecond)
@@ -54,7 +37,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 	attrs := []attribute.KeyValue{
 		attribute.Key("用户信息").StringSlice([]string{"在线用户数"}),
 	}
-	histogram, _ := ar_metric.Meter.Float64Histogram("histogram：当前用户数", instrument.WithUnit((string)(unit.Dimensionless)), instrument.WithDescription("a histogram with custom buckets and name"))
+	histogram, _ := ar_metric.Meter.SyncFloat64().Histogram("histogram：当前用户数", instrument.WithUnit(unit.Dimensionless), instrument.WithDescription("a histogram with custom buckets and name"))
 	histogram.Record(ctx, 136, attrs...)
 	histogram.Record(ctx, 64, attrs...)
 	histogram.Record(ctx, 340, attrs...)
@@ -63,7 +46,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 	attrs = []attribute.KeyValue{
 		attribute.Key("用户信息").String("登录DAU"),
 	}
-	sum, _ := ar_metric.Meter.Float64Counter("sum：用户数日活", instrument.WithUnit((string)(unit.Milliseconds)), instrument.WithDescription("a simple counter"))
+	sum, _ := ar_metric.Meter.SyncFloat64().Counter("sum：用户数日活", instrument.WithUnit(unit.Milliseconds), instrument.WithDescription("a simple counter"))
 	sum.Add(ctx, 25, attrs...)
 	sum.Add(ctx, 315, attrs...)
 	sum.Add(ctx, 628, attrs...)
@@ -73,7 +56,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 }
 
 func FileMetricInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	metricClient := public.NewFileClient("./AnyRobotMetric.json")
 	metricExporter := ar_metric.NewExporter(metricClient)
 	ar_metric.MetricProvider = sdkmetric.NewMeterProvider(
@@ -84,7 +67,7 @@ func FileMetricInit() {
 }
 
 func ConsoleMetricInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	metricClient := public.NewConsoleClient()
 	metricExporter := ar_metric.NewExporter(metricClient)
 	ar_metric.MetricProvider = sdkmetric.NewMeterProvider(
@@ -95,7 +78,7 @@ func ConsoleMetricInit() {
 }
 
 func StdoutMetricInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	metricClient := public.NewStdoutClient("./AnyRobotMetric.json")
 	metricExporter := ar_metric.NewExporter(metricClient)
 	ar_metric.MetricProvider = sdkmetric.NewMeterProvider(
@@ -106,7 +89,7 @@ func StdoutMetricInit() {
 }
 
 func HTTPMetricInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	metricClient := public.NewHTTPClient(public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"),
 		public.WithCompression(1), public.WithTimeout(10*time.Second), public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
 	metricExporter := ar_metric.NewExporter(metricClient)

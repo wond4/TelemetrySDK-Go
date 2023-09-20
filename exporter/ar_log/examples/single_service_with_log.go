@@ -12,7 +12,6 @@ import (
 	spanLog "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/open_standard"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/runtime"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/version"
 	"fmt"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -65,7 +64,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 }
 
 func FileLogInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	// 1.初始化系统日志器，系统日志写入文件。
 	systemLogClient := public.NewFileClient("./AnyRobotLog.json")
 	systemLogExporter := ar_log.NewExporter(systemLogClient)
@@ -90,7 +89,7 @@ func FileLogInit() {
 }
 
 func ConsoleLogInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	// 1.初始化系统日志器，系统日志在控制台输出。
 	systemLogExporter := exporter.GetRealTimeExporter()
 	systemLogWriter := open_standard.OpenTelemetryWriter(
@@ -114,7 +113,7 @@ func ConsoleLogInit() {
 }
 
 func HTTPLogInit() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	// 1.初始化系统日志器，系统日志上报AnyRobot。
 	systemLogClient := public.NewHTTPClient(
 		public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"),
@@ -186,7 +185,7 @@ func HTTPExample() {
 
 // WithAllExample 修改client所有入参。
 func WithAllExample() {
-	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", "2.6.3", "983d7e1d5e8cda64")
 	consoleExporter := exporter.GetRealTimeExporter()
 
 	// 1.初始化系统日志器，系统日志在控制台输出，同时上报到AnyRobot。
