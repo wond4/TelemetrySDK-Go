@@ -56,9 +56,20 @@ func (a *attribute) private() {
 
 // getHostIP 获取主机IP。
 func getHostIP() string {
-	connection, _ := net.Dial("udp", "255.255.255.255:33")
-	ipPort := connection.LocalAddr().(*net.UDPAddr)
-	return ipPort.IP.String()
+	addrList, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+
+	for _, address := range addrList {
+		if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() && !ipNet.IP.IsLinkLocalUnicast() {
+			if ipNet.IP.To4() != nil || ipNet.IP.To16() != nil {
+				return ipNet.IP.String()
+			}
+		}
+	}
+
+	return ""
 }
 
 // getHostInfo 获取主机信息。
