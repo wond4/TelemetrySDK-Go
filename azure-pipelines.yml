@@ -13,6 +13,7 @@ trigger:
       - "master"
       - "release-*"
       - "release/*"
+      - "\d+\.\d+\.\d+"
 
 variables:
   - group: anyrobot-global-config
