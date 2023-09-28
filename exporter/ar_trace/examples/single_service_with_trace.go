@@ -2,14 +2,18 @@ package examples
 
 import (
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"log"
 	"time"
+
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/ar_trace"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/version"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const result = "the answer is"
@@ -20,9 +24,9 @@ func add(ctx context.Context, x, y int64) (context.Context, int64) {
 	defer span.End()
 	span.SetAttributes(attribute.KeyValue{Key: "add", Value: attribute.StringValue("计算两数之和")})
 	span.AddEvent("AddEvent", trace.WithAttributes(attribute.KeyValue{Key: "succeeded", Value: attribute.BoolValue(true)}))
-	span.SetStatus(2, "成功计算加法")
+	span.SetStatus(2, "戝功计算加法")
 
-	// 业务代码
+	// 业务代砝
 	time.Sleep(100 * time.Millisecond)
 	return ctx, x + y
 }
@@ -33,15 +37,15 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 	defer span.End()
 	span.SetAttributes(attribute.KeyValue{Key: "multiply", Value: attribute.StringValue("计算两数之积")})
 	span.AddEvent("multiplyEvent", trace.WithAttributes(attribute.BoolSlice("key", []bool{true, true}), attribute.String("analyzed", "100ms")))
-	span.SetStatus(2, "成功计算乘积")
+	span.SetStatus(2, "戝功计算乘积")
 
-	// 业务代码
+	// 业务代砝
 	time.Sleep(100 * time.Millisecond)
 	return ctx, x * y
 }
 
 func FileTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.4", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewFileClient("./AnyRobotTrace.json")
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -52,7 +56,7 @@ func FileTraceInit() {
 }
 
 func ConsoleTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.4", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewConsoleClient()
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -63,7 +67,7 @@ func ConsoleTraceInit() {
 }
 
 func StdoutTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.4", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewStdoutClient("./AnyRobotTrace.json")
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -73,8 +77,8 @@ func StdoutTraceInit() {
 	otel.SetTracerProvider(tracerProvider)
 }
 
-func HTTPTraceInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.4", "983d7e1d5e8cda64")
+func HTTPTraceInit() {	
+public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	traceClient := public.NewHTTPClient(public.WithAnyRobotURL("http://127.0.0.1/api/feed_ingester/v1/jobs/job-864ab9d78f6a1843/events"))
 	traceExporter := ar_trace.NewExporter(traceClient)
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -95,7 +99,7 @@ func TraceProviderExit(ctx context.Context) {
 func FileExample() {
 	FileTraceInit()
 	ctx := context.Background()
-	// 业务代码
+	// 业务代砝
 	ctx, num := multiply(ctx, 2, 3)
 	ctx, num = multiply(ctx, num, 7)
 	ctx, num = add(ctx, num, 8)
@@ -103,11 +107,11 @@ func FileExample() {
 	log.Println(result, num)
 }
 
-// ConsoleExample 输出到控制台。
+// ConsoleExample 输出到控制坰。
 func ConsoleExample() {
 	ConsoleTraceInit()
 	ctx := context.Background()
-	// 业务代码
+	// 业务代砝
 	ctx, num := multiply(ctx, 2, 3)
 	ctx, num = multiply(ctx, num, 7)
 	ctx, num = add(ctx, num, 8)
@@ -115,11 +119,31 @@ func ConsoleExample() {
 	log.Println(result, num)
 }
 
-// StdoutExample 输出到控制台和本地文件。
+// StdoutExample 输出到控制坰和本地文件。
 func StdoutExample() {
 	StdoutTraceInit()
 	ctx := context.Background()
-	// 业务代码
+	//traceClient := public.NewStdoutClient("./AnyRobotTrace.txt")
+	attrs := []attribute.KeyValue{
+		attribute.String("job_id", "job-ea0ebc769228f873"),
+	}
+	jobResource := resource.NewWithAttributes("", attrs...)
+	resource.Merge(jobResource, ar_trace.TraceResource())
+	tempResource, err := resource.Merge(jobResource, ar_trace.TraceResource())
+	if err == nil {
+		jobResource = tempResource
+	}
+	traceExporter, _ := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint("127.0.0.1:13034"))
+	public.SetServiceInfo("YourServiceName", "1.0.0", "")
+	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithBatcher(traceExporter), sdktrace.WithResource(jobResource))
+
+	otel.SetTracerProvider(tracerProvider)
+	defer func() {
+		if err := tracerProvider.Shutdown(ctx); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	ctx, num := multiply(ctx, 2, 3)
 	ctx, num = multiply(ctx, num, 7)
 	ctx, num = add(ctx, num, 8)
@@ -127,11 +151,11 @@ func StdoutExample() {
 	log.Println(result, num)
 }
 
-// HTTPExample 通过HTTP发送器上报到接收器。
+// HTTPExample 通过HTTP坑逝器上报到接收器。
 func HTTPExample() {
 	HTTPTraceInit()
 	ctx := context.Background()
-	// 业务代码
+	// 业务代砝
 	ctx, num := multiply(ctx, 2, 3)
 	ctx, num = multiply(ctx, num, 7)
 	ctx, num = add(ctx, num, 8)
@@ -139,9 +163,9 @@ func HTTPExample() {
 	log.Println(result, num)
 }
 
-// WithAllExample 修改client所有入参。
+// WithAllExample 修改client所有入坂。
 func WithAllExample() {
-	public.SetServiceInfo("YourServiceName", "2.6.4", "983d7e1d5e8cda64")
+	public.SetServiceInfo("YourServiceName", version.TelemetrySDKVersion, "983d7e1d5e8cda64")
 	ctx := context.Background()
 	header := make(map[string]string)
 	header["self-defined"] = "some_header"
@@ -160,17 +184,17 @@ func WithAllExample() {
 		}
 	}()
 
-	// 业务代码
+	// 业务代砝
 	ctx, num := multiply(ctx, 2, 3)
 	ctx, num = multiply(ctx, num, 7)
-	// 调用ForceFlush之后会立即发送之前生产的2次乘法链路。
+	// 调用ForceFlush之坎会立坳坑逝之剝生产的2次乘法链路。
 	_ = tracerProvider.ForceFlush(ctx)
-	// 关闭Trace的发送，这3次加法产生的链路不会发送。
+	// 关闭Trace的坑逝，这3次加法产生的链路丝会坑逝。
 	tracerProvider.UnregisterSpanProcessor(sdktrace.NewBatchSpanProcessor(traceExporter))
 	ctx, num = add(ctx, num, 8)
 	ctx, num = add(ctx, num, 9)
 	ctx, num = add(ctx, num, 10)
-	// 开启Trace的发送，这1次乘法产生的链路会发送。
+	// 开坯Trace的坑逝，这1次乘法产生的链路会坑逝。
 	tracerProvider.RegisterSpanProcessor(sdktrace.NewBatchSpanProcessor(traceExporter))
 	ctx, num = multiply(ctx, num, 9)
 	log.Println(result, num)
