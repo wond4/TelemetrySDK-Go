@@ -9,9 +9,12 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/version"
 	"encoding/json"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	"os"
+	"time"
 )
 
 // 跨包实现接口占位用。
@@ -55,4 +58,46 @@ func NewExporter(c public.Client) *TraceExporter {
 // TraceResource 传入 Trace 的默认Resource。
 func TraceResource() *sdkresource.Resource {
 	return resource.TraceResource()
+}
+
+// InitARTracer 初始化上报到AnyRobot的链路数据记录器
+// ServerName 微服务名称
+// ServerVersion 微服务版本
+// ServerInstance 微服务实例标识
+func InitARTracer(ServerName string, ServerVersion string, ServerInstance string) *sdktrace.TracerProvider {
+	traceEnabled := os.Getenv("TELEMETRY_TRACE_ENABLED")
+	traceUrl := os.Getenv("TELEMETRY_TRACE_ENDPOINT")
+
+	if traceEnabled == "true" {
+		resource.SetServiceName(ServerName)
+		resource.SetServiceVersion(ServerVersion)
+		resource.SetServiceInstance(ServerInstance)
+
+		traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceUrl),
+			public.WithCompression(1), public.WithTimeout(10*time.Second),
+			public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
+		traceExporter := NewExporter(traceClient)
+		tracerProvider := sdktrace.NewTracerProvider(
+			sdktrace.WithBatcher(traceExporter,
+				sdktrace.WithMaxExportBatchSize(1000)),
+			sdktrace.WithResource(TraceResource()))
+
+		otel.SetTracerProvider(tracerProvider)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		return tracerProvider
+	} else {
+		return nil
+	}
+}
+
+// StopARTracer 关闭 ARTracer
+func StopARTracer(tracerProvider *sdktrace.TracerProvider, ctx context.Context) {
+	if tracerProvider == nil {
+		return
+	}
+
+	if err := tracerProvider.Shutdown(ctx); err != nil {
+		panic(err)
+	}
 }
