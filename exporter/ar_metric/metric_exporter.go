@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 )
