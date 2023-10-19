@@ -27,7 +27,7 @@ func TestMetricExporterAggregation(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   aggregation.Aggregation
+		want   metric.aggregation.Aggregation
 	}{
 		{
 			"选择聚合类型",
