@@ -20,7 +20,7 @@ func add(ctx context.Context, x, y int64) (context.Context, int64) {
 	attrs := []attribute.KeyValue{
 		attribute.Key("用户信息").String("在线用户数"),
 	}
-	gauge, _ := ar_metric.Meter.Int64ObservableGauge("gauge：用户数峰值", metric.instrument.WithUnit("1"), metric.instrument.WithDescription("a simple gauge"))
+	gauge, _ := ar_metric.Meter.Int64ObservableGauge("gauge：用户数峰值", metric.WithUnit("1"), metric.WithDescription("a simple gauge"))
 	gaugeTest := func(ctx context.Context, obsrv metric.Observer) error {
 		obsrv.ObserveInt64(gauge, 12, attrs...)
 		return nil
@@ -35,7 +35,7 @@ func add(ctx context.Context, x, y int64) (context.Context, int64) {
 	_, _ = ar_metric.Meter.RegisterCallback(gaugeTest, gauge)
 	_, _ = ar_metric.Meter.RegisterCallback(gaugeTest1, gauge)
 
-	counter, _ := ar_metric.Meter.Int64ObservableCounter("CounterTest", metric.instrument.WithUnit("1"), metric.instrument.WithDescription("a simple gauge"))
+	counter, _ := ar_metric.Meter.Int64ObservableCounter("CounterTest", metric.WithUnit("1"), metric.WithDescription("a simple gauge"))
 	CounterTest := func(ctx context.Context, obsrv metric.Observer) error {
 		obsrv.ObserveInt64(counter, 2, attrs...)
 		return nil
@@ -52,7 +52,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 	attrs := []attribute.KeyValue{
 		attribute.Key("用户信息").StringSlice([]string{"在线用户数"}),
 	}
-	histogram, _ := ar_metric.Meter.Float64Histogram("histogram：当前用户数", metric.instrument.WithUnit((string)(metric.unit.Dimensionless)), metric.instrument.WithDescription("a histogram with custom buckets and name"))
+	histogram, _ := ar_metric.Meter.Float64Histogram("histogram：当前用户数", metric.WithUnit((string)("1")), metric.WithDescription("a histogram with custom buckets and name"))
 	histogram.Record(ctx, 136, attrs...)
 	histogram.Record(ctx, 64, attrs...)
 	histogram.Record(ctx, 340, attrs...)
@@ -61,7 +61,7 @@ func multiply(ctx context.Context, x, y int64) (context.Context, int64) {
 	attrs = []attribute.KeyValue{
 		attribute.Key("用户信息").String("登录DAU"),
 	}
-	sum, _ := ar_metric.Meter.Float64Counter("sum：用户数日活", metric.instrument.WithUnit((string)(metric.unit.Milliseconds)), metric.instrument.WithDescription("a simple counter"))
+	sum, _ := ar_metric.Meter.Float64Counter("sum：用户数日活", metric.WithUnit((string)("ms")), metric.WithDescription("a simple counter"))
 	sum.Add(ctx, 25, attrs...)
 	sum.Add(ctx, 315, attrs...)
 	sum.Add(ctx, 628, attrs...)

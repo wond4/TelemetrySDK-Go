@@ -49,7 +49,7 @@ func (e *MetricExporter) Temporality(k sdkmetric.InstrumentKind) metricdata.Temp
 }
 
 // Aggregation 聚合类型，有7种，通过 metric.InstrumentKind 来区分。
-func (e *MetricExporter) Aggregation(k sdkmetric.InstrumentKind) metric.aggregation.Aggregation {
+func (e *MetricExporter) Aggregation(k sdkmetric.InstrumentKind) sdkmetric.Aggregation {
 	return sdkmetric.DefaultAggregationSelector(k)
 }
 

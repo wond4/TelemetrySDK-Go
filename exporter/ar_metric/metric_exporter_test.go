@@ -4,6 +4,7 @@ import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
 	"go.opentelemetry.io/otel/sdk/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	"reflect"
@@ -27,7 +28,7 @@ func TestMetricExporterAggregation(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   metric.aggregation.Aggregation
+		want   sdkmetric.Aggregation
 	}{
 		{
 			"选择聚合类型",
