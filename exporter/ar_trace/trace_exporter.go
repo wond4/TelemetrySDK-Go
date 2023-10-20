@@ -64,14 +64,17 @@ func TraceResource() *sdkresource.Resource {
 // ServerName 微服务名称
 // ServerVersion 微服务版本
 // ServerInstance 微服务实例标识
-func InitARTracer(ServerName string, ServerVersion string, ServerInstance string) *sdktrace.TracerProvider {
+func InitARTracer() *sdktrace.TracerProvider {
+	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
+	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+	serverInstance := os.Getenv("HOSTNAME")
 	traceEnabled := os.Getenv("TELEMETRY_TRACE_ENABLED")
 	traceUrl := os.Getenv("TELEMETRY_TRACE_ENDPOINT")
 
 	if traceEnabled == "true" {
-		resource.SetServiceName(ServerName)
-		resource.SetServiceVersion(ServerVersion)
-		resource.SetServiceInstance(ServerInstance)
+		resource.SetServiceName(serverName)
+		resource.SetServiceVersion(serverVersion)
+		resource.SetServiceInstance(serverInstance)
 
 		traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceUrl),
 			public.WithCompression(1), public.WithTimeout(10*time.Second),
