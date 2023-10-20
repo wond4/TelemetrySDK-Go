@@ -57,8 +57,10 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 // ServerVersion 微服务版本
 // ServerInstance 微服务实例标识
 // logLevel 日志等级
-func InitARLogger(ServerName string, ServerVersion string, ServerInstance string) spanLog.Logger {
-
+func InitARLogger() spanLog.Logger {
+	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
+	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+	serverInstance := os.Getenv("HOSTNAME")
 	logEnabled := os.Getenv("TELEMETRY_LOG_ENABLED")
 	logLevel := os.Getenv("TELEMETRY_LOG_LEVEL")
 	if logEnabled != "true" {
@@ -69,9 +71,9 @@ func InitARLogger(ServerName string, ServerVersion string, ServerInstance string
 	var ARLogger = spanLog.NewSamplerLogger(spanLog.WithSample(1.0), spanLog.WithLevel(getLogLevel(logLevel)))
 
 	// 设置微服务相关信息
-	resource.SetServiceName(ServerName)
-	resource.SetServiceVersion(ServerVersion)
-	resource.SetServiceInstance(ServerInstance)
+	resource.SetServiceName(serverName)
+	resource.SetServiceVersion(serverVersion)
+	resource.SetServiceInstance(serverInstance)
 
 	// 设置日志打印标准输出
 	systemLogExporter := exporter.GetRealTimeExporter()
