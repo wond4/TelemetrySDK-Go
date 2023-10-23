@@ -59,7 +59,7 @@ stages:
 
                   echo machine devops.aishu.cn login AnyRobot password $(System.AccessToken) > ~/.netrc
                   cd /TelemetrySDK-Go/event
-                  go mod download
+                  go mod download devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2
                   mkdir -p /TelemetrySDK-Go/event/report
                   go test -gcflags=all=-l -v -coverprofile=report/ut_coverage.out ./... 2>&1 | go-junit-report > report/$(UTReportName)
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
@@ -238,7 +238,7 @@ stages:
 
                   echo machine devops.aishu.cn login AnyRobot password $(System.AccessToken) > ~/.netrc
                   cd /TelemetrySDK-Go/exporter
-                  go mod download
+                  go mod download devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2
                   mkdir -p /TelemetrySDK-Go/exporter/report
                   go test -gcflags=all=-l -v -coverprofile=report/ut_coverage.out ./... 2>&1 | go-junit-report > report/$(UTReportName)
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
@@ -418,7 +418,7 @@ stages:
                   echo machine devops.aishu.cn login AnyRobot password $(System.AccessToken) > ~/.netrc
 
                   cd /TelemetrySDK-Go/span
-                  go mod download
+                  go mod download devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2
                   mkdir -p /TelemetrySDK-Go/span/report
                   go test -gcflags=all=-l -v -coverprofile=report/ut_coverage.out ./... 2>&1 | go-junit-report > report/$(UTReportName)
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
