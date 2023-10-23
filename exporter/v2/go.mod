@@ -6,6 +6,7 @@ require (
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.6.8
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.6.8
 	github.com/agiledragon/gomonkey/v2 v2.9.0
+	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/shirou/gopsutil/v3 v3.22.12
 	github.com/smartystreets/goconvey v1.8.0
 	github.com/stretchr/testify v1.8.3
