@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/eventsdk"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/eventsdk"
 )
 
 func TestNewStdoutClient(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 )
 
 func TestNewExporter(t *testing.T) {
