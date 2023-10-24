@@ -9,13 +9,12 @@ import (
 	"encoding/json"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 )
 
-// 跨包实现接口占位用。
-var _ sdkmetric.Exporter = (*MetricExporter)(nil)
+//// 跨包实现接口占位用。
+//var _ sdkmetric.Exporter = (*MetricExporter)(nil)
 
 // MetricProvider 是一个全局变量，用于在业务代码中生产Meter。
 var MetricProvider = (*sdkmetric.MeterProvider)(nil)
@@ -50,7 +49,7 @@ func (e *MetricExporter) Temporality(k sdkmetric.InstrumentKind) metricdata.Temp
 }
 
 // Aggregation 聚合类型，有7种，通过 metric.InstrumentKind 来区分。
-func (e *MetricExporter) Aggregation(k sdkmetric.InstrumentKind) aggregation.Aggregation {
+func (e *MetricExporter) Aggregation(k sdkmetric.InstrumentKind) sdkmetric.Aggregation {
 	return sdkmetric.DefaultAggregationSelector(k)
 }
 
