@@ -9,9 +9,13 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
 	"encoding/json"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	"log"
+	"os"
+	"time"
 )
 
 // 跨包实现接口占位用。
@@ -55,4 +59,49 @@ func NewExporter(c public.Client) *TraceExporter {
 // TraceResource 传入 Trace 的默认Resource。
 func TraceResource() *sdkresource.Resource {
 	return resource.TraceResource()
+}
+
+// InitARTracer 初始化上报到AnyRobot的链路数据记录器
+// ServerName 微服务名称
+// ServerVersion 微服务版本
+// ServerInstance 微服务实例标识
+func InitARTracer() *sdktrace.TracerProvider {
+	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
+	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+	serverInstance := os.Getenv("HOSTNAME")
+	traceEnabled := os.Getenv("TELEMETRY_TRACE_ENABLED")
+	traceUrl := os.Getenv("TELEMETRY_TRACE_ENDPOINT")
+
+	if traceEnabled == "true" {
+		resource.SetServiceName(serverName)
+		resource.SetServiceVersion(serverVersion)
+		resource.SetServiceInstance(serverInstance)
+
+		traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceUrl),
+			public.WithCompression(1), public.WithTimeout(10*time.Second),
+			public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
+		traceExporter := NewExporter(traceClient)
+		tracerProvider := sdktrace.NewTracerProvider(
+			sdktrace.WithBatcher(traceExporter,
+				sdktrace.WithMaxExportBatchSize(1000)),
+			sdktrace.WithResource(TraceResource()))
+
+		otel.SetTracerProvider(tracerProvider)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		return tracerProvider
+	} else {
+		return nil
+	}
+}
+
+// StopARTracer 关闭 ARTracer
+func StopARTracer(tp *sdktrace.TracerProvider) {
+	if tp == nil {
+		return
+	}
+
+	if err := tp.Shutdown(context.Background()); err != nil {
+		log.Printf("Error shutting down tracer provider: %v", err)
+	}
 }

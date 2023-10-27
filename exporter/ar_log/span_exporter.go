@@ -3,7 +3,15 @@ package ar_log
 import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/encoder"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
+	spanLog "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/log"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
+	"os"
+	"time"
 )
 
 // 跨包实现接口占位用。
@@ -41,5 +49,67 @@ func (s *syncExporter) ExportLogs(ctx context.Context, logs []byte) error {
 func NewSyncExporter(c public.SyncClient) *syncExporter {
 	return &syncExporter{
 		public.NewSyncExporter(c),
+	}
+}
+
+// InitARLogger 初始化上报到AnyRobot的日志记录器
+// ServerName 微服务名称
+// ServerVersion 微服务版本
+// ServerInstance 微服务实例标识
+// logLevel 日志等级
+func InitARLogger() spanLog.Logger {
+	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
+	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+	serverInstance := os.Getenv("HOSTNAME")
+	logEnabled := os.Getenv("TELEMETRY_LOG_ENABLED")
+	logLevel := os.Getenv("TELEMETRY_LOG_LEVEL")
+	if logEnabled != "true" {
+		logLevel = "off"
+	}
+
+	// 初始化ar_log
+	var ARLogger = spanLog.NewSamplerLogger(spanLog.WithSample(1.0), spanLog.WithLevel(getLogLevel(logLevel)))
+
+	// 设置微服务相关信息
+	resource.SetServiceName(serverName)
+	resource.SetServiceVersion(serverVersion)
+	resource.SetServiceInstance(serverInstance)
+
+	// 设置日志打印标准输出
+	systemLogExporter := exporter.GetRealTimeExporter()
+	systemLogWriter := open_standard.OpenTelemetryWriter(
+		encoder.NewJsonEncoderWithExporters(systemLogExporter),
+		resource.LogResource())
+	systemLogRunner := runtime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
+	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
+
+	go systemLogRunner.Run()
+	ARLogger.SetLevel(getLogLevel(logLevel))
+	ARLogger.SetRuntime(systemLogRunner)
+
+	return ARLogger
+}
+
+// getLogLevel Log配置转换为spanlog配置，默认不填的日志级别为warn
+func getLogLevel(level string) int {
+	switch level {
+	case "all":
+		return spanLog.AllLevel
+	case "trace":
+		return spanLog.TraceLevel
+	case "debug":
+		return spanLog.DebugLevel
+	case "info":
+		return spanLog.InfoLevel
+	case "warn":
+		return spanLog.WarnLevel
+	case "error":
+		return spanLog.ErrorLevel
+	case "fatal":
+		return spanLog.FatalLevel
+	case "off":
+		return spanLog.OffLevel
+	default:
+		return spanLog.WarnLevel
 	}
 }
