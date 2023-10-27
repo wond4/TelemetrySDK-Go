@@ -3,7 +3,15 @@ package ar_log
 import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/encoder"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
+	spanLog "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/log"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
+	"os"
+	"time"
 )
 
 // 跨包实现接口占位用。
@@ -42,4 +50,25 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 	return &syncExporter{
 		public.NewSyncExporter(c),
 	}
+}
+
+// InitBusinessLogger 初始化业务日志记录器
+func InitBusinessLogger() spanLog.Logger {
+	// 设置微服务相关信息
+	resource.SetServiceName(os.Getenv("TELEMETRY_SERVICE_NAME"))
+	resource.SetServiceVersion(os.Getenv("TELEMETRY_SERVICE_VERSION"))
+	resource.SetServiceInstance(os.Getenv("HOSTNAME"))
+
+	var businessLogger = spanLog.NewSamplerLogger(spanLog.WithSample(1.0), spanLog.WithLevel(spanLog.AllLevel))
+	systemLogExporter := exporter.GetRealTimeExporter()
+	systemLogWriter := open_standard.OpenTelemetryWriter(
+		encoder.NewJsonEncoderWithExporters(systemLogExporter),
+		resource.LogResource())
+	systemLogRunner := runtime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
+	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
+	// 运行SystemLogger日志器。
+	go systemLogRunner.Run()
+	businessLogger.SetRuntime(systemLogRunner)
+
+	return businessLogger
 }
