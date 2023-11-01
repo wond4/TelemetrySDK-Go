@@ -8,13 +8,19 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
 	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"log"
 	"os"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -104,4 +110,39 @@ func StopARTracer(tp *sdktrace.TracerProvider) {
 	if err := tp.Shutdown(context.Background()); err != nil {
 		log.Printf("Error shutting down tracer provider: %v", err)
 	}
+}
+
+// StartInternalSpan 内部方法调用trace埋点
+func StartInternalSpan(ctx context.Context) (newCtx context.Context, span trace.Span) {
+	if c, ok := ctx.(*gin.Context); ok {
+		ctx = c.Request.Context()
+	}
+
+	pc, file, linkNo, ok := runtime.Caller(1)
+	if !ok {
+		log.Printf("start span error")
+		newCtx, span = Tracer.Start(ctx, "unKnow", trace.WithSpanKind(trace.SpanKindInternal))
+		return
+	} else {
+		funcPaths := strings.Split(runtime.FuncForPC(pc).Name(), "/")
+		spanName := funcPaths[len(funcPaths)-1]
+		newCtx, span = Tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindInternal))
+		span.SetAttributes(attribute.String("func.path", fmt.Sprintf("%s:%v", file, linkNo)))
+		return
+	}
+}
+
+// EndSpan 关闭span
+func EndSpan(ctx context.Context, err error) {
+	span := trace.SpanFromContext(ctx)
+	if span == nil {
+		return
+	}
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+	} else {
+		span.SetStatus(codes.Ok, "OK")
+	}
+	span.End()
 }

@@ -1,14 +1,13 @@
 package main
 
 import (
+	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"net/http"
@@ -36,13 +35,13 @@ func main() {
 	_ = r.Run(":50081")
 }
 
-// getUser 根据用户ID获取用户
-func getUser(id string, c *gin.Context) User {
-	// 第二个参数为span名称、第三个参数为span类型
-	ctx, span := ar_trace.Tracer.Start(c.Request.Context(), "根据用户ID获取用户", trace.WithSpanKind(trace.SpanKindInternal))
-	defer span.End()
-	// 第一个参数为span状态、第二个参数为span状态描述
-	span.SetStatus(codes.Ok, "")
+// getUser 根据用户ID获取用户信息
+func getUser(id string, ctx context.Context) User {
+	var err error
+	newCtx, span := ar_trace.StartInternalSpan(ctx)
+	defer ar_trace.EndSpan(newCtx, err)
+	// 不设置span name的话，span name 默认为函数名称
+	span.SetName("根据用户ID获取用户信息")
 
 	// 连接到 SQLite 数据库
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
