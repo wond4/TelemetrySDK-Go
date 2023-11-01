@@ -1,9 +1,14 @@
 package main
 
 import (
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"net/http"
@@ -16,28 +21,41 @@ type User struct {
 }
 
 func main() {
+	arTracerProvider := ar_trace.InitARTracer()
+	defer ar_trace.StopARTracer(arTracerProvider)
+
 	initDB()
 
 	r := gin.Default()
+	r.Use(otelgin.Middleware("my-server-dependent"))
 	r.GET("/users/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		user := getUser(id)
+		user := getUser(id, c)
 		c.String(http.StatusOK, user.Name)
 	})
 	_ = r.Run(":50081")
 }
 
 // getUser 根据用户ID获取用户
-func getUser(id string) User {
+func getUser(id string, c *gin.Context) User {
+	// 第二个参数为span名称、第三个参数为span类型
+	ctx, span := ar_trace.Tracer.Start(c.Request.Context(), "根据用户ID获取用户", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+	// 第一个参数为span状态、第二个参数为span状态描述
+	span.SetStatus(codes.Ok, "")
+
 	// 连接到 SQLite 数据库
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
-		fmt.Println("连接数据库失败：" + err.Error())
+		panic("连接数据库失败：" + err.Error())
+	}
+	if err := db.Use(otelgorm.NewPlugin()); err != nil {
+		panic("连接数据库失败：" + err.Error())
 	}
 
 	// WHERE 查询
 	var result User
-	err = db.Where("id = ?", id).First(&result).Error
+	err = db.WithContext(ctx).Where("id = ?", id).First(&result).Error
 	if err != nil {
 		fmt.Println("查询用户失败：" + err.Error())
 	}
