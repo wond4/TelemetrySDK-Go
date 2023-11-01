@@ -4,7 +4,7 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 该示例有两个golang服务。portal_service为入口服务，接受外部请求，然后调用dependent_service的接口。
 
 ## 运行代码示例，上报可观测数据到AnyRobot
-1、下载go依赖
+1、下载go依赖，进入上一层目录执行下面命令
 ```shell
 go mod tidy
 ```
@@ -13,4 +13,14 @@ go mod tidy
 export TELEMETRY_TRACE_ENDPOINT=10.4.104.243:80/api/feed_ingester/v1/jobs/job-a2491f67d02e482c/events
 export TELEMETRY_TRACE_ENABLED=true
 ```
-3、登录AnyRobot页面查看应用软件可观测仪表盘
+3、运行两个golang服务
+```shell
+go run dependent_service_observability.go
+go run portal_service_observability.go
+```
+4、外部请求
+```shell
+curl 127.0.0.1:50080/users/1
+curl 127.0.0.1:50080/users/2
+```
+5、登录AnyRobot页面查看应用软件可观测仪表盘
