@@ -29,17 +29,17 @@ func main() {
 	r.Use(otelgin.Middleware("my-server-dependent"))
 	r.GET("/users/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		user := getUser(id, c)
+		user, _ := getUser(id, c)
 		c.String(http.StatusOK, user.Name)
 	})
 	_ = r.Run(":50081")
 }
 
 // getUser 根据用户ID获取用户信息
-func getUser(id string, ctx context.Context) User {
-	var err error
+func getUser(id string, ctx context.Context) (result User, err error) {
 	newCtx, span := ar_trace.StartInternalSpan(ctx)
-	defer ar_trace.EndSpan(newCtx, err)
+	// 结束span时，err如果不为空的话，则span状态设置为error
+	defer func() { ar_trace.EndSpan(newCtx, err) }()
 	// 不设置span name的话，span name 默认为函数名称
 	span.SetName("根据用户ID获取用户信息")
 
@@ -53,12 +53,11 @@ func getUser(id string, ctx context.Context) User {
 	}
 
 	// WHERE 查询
-	var result User
-	err = db.WithContext(ctx).Where("id = ?", id).First(&result).Error
+	err = db.WithContext(newCtx).Where("id = ?", id).First(&result).Error
 	if err != nil {
 		fmt.Println("查询用户失败：" + err.Error())
 	}
-	return result
+	return
 }
 
 // initDB 初始化本地数据库

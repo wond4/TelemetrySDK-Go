@@ -21,14 +21,14 @@ func main() {
 	r := gin.Default()
 	r.GET("/users/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		user := getUser(id)
+		user, _ := getUser(id)
 		c.String(http.StatusOK, user.Name)
 	})
 	_ = r.Run(":50081")
 }
 
 // getUser 根据用户ID获取用户
-func getUser(id string) User {
+func getUser(id string) (result User, err error) {
 	// 连接到 SQLite 数据库
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
@@ -36,12 +36,11 @@ func getUser(id string) User {
 	}
 
 	// WHERE 查询
-	var result User
 	err = db.Where("id = ?", id).First(&result).Error
 	if err != nil {
 		fmt.Println("查询用户失败：" + err.Error())
 	}
-	return result
+	return
 }
 
 // initDB 初始化本地数据库
