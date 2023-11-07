@@ -113,3 +113,24 @@ func getLogLevel(level string) int {
 		return spanLog.WarnLevel
 	}
 }
+
+// InitBusinessLogger 初始化业务日志记录器
+func InitBusinessLogger() spanLog.Logger {
+	// 设置微服务相关信息
+	resource.SetServiceName(os.Getenv("TELEMETRY_SERVICE_NAME"))
+	resource.SetServiceVersion(os.Getenv("TELEMETRY_SERVICE_VERSION"))
+	resource.SetServiceInstance(os.Getenv("HOSTNAME"))
+
+	var businessLogger = spanLog.NewSamplerLogger(spanLog.WithSample(1.0), spanLog.WithLevel(spanLog.AllLevel))
+	systemLogExporter := exporter.GetRealTimeExporter()
+	systemLogWriter := open_standard.OpenTelemetryWriter(
+		encoder.NewJsonEncoderWithExporters(systemLogExporter),
+		resource.LogResource())
+	systemLogRunner := runtime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
+	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
+	// 运行SystemLogger日志器。
+	go systemLogRunner.Run()
+	businessLogger.SetRuntime(systemLogRunner)
+
+	return businessLogger
+}
