@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
 	"errors"
 	"fmt"
@@ -45,6 +46,9 @@ func desensitizeUserName(name string, ctx context.Context) string {
 	for i := 1; i < len(runes); i++ {
 		runes[i] = '*'
 	}
+
+	// 输出支持与trace关联的log
+	ar_log.Info(newCtx, "用户名称脱敏成功")
 
 	return string(runes)
 }

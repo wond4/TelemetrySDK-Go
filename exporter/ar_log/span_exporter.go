@@ -9,14 +9,24 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
 	spanLog "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
+	sdkRuntime "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
+	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
 )
 
 // 跨包实现接口占位用。
 var _ exporter.LogExporter = (*SpanExporter)(nil)
 var _ exporter.SyncExporter = (*syncExporter)(nil)
+var (
+	// Logger 全局程序日志记录器
+	Logger spanLog.Logger
+	// BLogger 全局业务日志记录器
+	BLogger spanLog.Logger
+)
 
 // SpanExporter 导出数据到AnyRobot Feed Ingester的 Log 数据接收器。
 type SpanExporter struct {
@@ -52,6 +62,45 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 	}
 }
 
+// init 包初始化函数，初始化全局日志记录器
+func init() {
+	Logger = InitARLogger()
+	BLogger = InitBusinessLogger()
+	Logger.Info("AnyRobot Logger init success")
+	BLogger.Info("AnyRobot BLogger init success")
+}
+
+// Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
+func Debug(ctx context.Context, msg string) {
+	pc, filename, line, _ := runtime.Caller(1)
+	Logger.Debug(fmt.Sprintf("%s:%d:%s: %v", filename, line, strings.TrimPrefix(filepath.Ext(runtime.FuncForPC(pc).Name()), "."), msg),
+		field.WithContext(ctx))
+}
+
+func Info(ctx context.Context, msg string) {
+	pc, filename, line, _ := runtime.Caller(1)
+	Logger.Info(fmt.Sprintf("%s:%d:%s: %v", filename, line, strings.TrimPrefix(filepath.Ext(runtime.FuncForPC(pc).Name()), "."), msg),
+		field.WithContext(ctx))
+}
+
+func Warn(ctx context.Context, msg string) {
+	pc, filename, line, _ := runtime.Caller(1)
+	Logger.Warn(fmt.Sprintf("%s:%d:%s: %v", filename, line, strings.TrimPrefix(filepath.Ext(runtime.FuncForPC(pc).Name()), "."), msg),
+		field.WithContext(ctx))
+}
+
+func Error(ctx context.Context, msg string) {
+	pc, filename, line, _ := runtime.Caller(1)
+	Logger.Error(fmt.Sprintf("%s:%d:%s: %v", filename, line, strings.TrimPrefix(filepath.Ext(runtime.FuncForPC(pc).Name()), "."), msg),
+		field.WithContext(ctx))
+}
+
+func Fatal(ctx context.Context, msg string) {
+	pc, filename, line, _ := runtime.Caller(1)
+	Logger.Fatal(fmt.Sprintf("%s:%d:%s: %v", filename, line, strings.TrimPrefix(filepath.Ext(runtime.FuncForPC(pc).Name()), "."), msg),
+		field.WithContext(ctx))
+}
+
 // InitARLogger 初始化上报到AnyRobot的日志记录器
 // ServerName 微服务名称
 // ServerVersion 微服务版本
@@ -80,7 +129,7 @@ func InitARLogger() spanLog.Logger {
 	systemLogWriter := open_standard.OpenTelemetryWriter(
 		encoder.NewJsonEncoderWithExporters(systemLogExporter),
 		resource.LogResource())
-	systemLogRunner := runtime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
+	systemLogRunner := sdkRuntime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
 	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
 
 	go systemLogRunner.Run()
@@ -126,7 +175,7 @@ func InitBusinessLogger() spanLog.Logger {
 	systemLogWriter := open_standard.OpenTelemetryWriter(
 		encoder.NewJsonEncoderWithExporters(systemLogExporter),
 		resource.LogResource())
-	systemLogRunner := runtime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
+	systemLogRunner := sdkRuntime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
 	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
 	// 运行SystemLogger日志器。
 	go systemLogRunner.Run()
