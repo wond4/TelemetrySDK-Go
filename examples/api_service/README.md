@@ -3,6 +3,11 @@
 original目录下为没有可观测数据埋点的原始代码，observable目录下为添加可观测数据埋点之后的代码。\
 该示例有两个golang服务。portal_service为入口服务，接受外部请求，然后调用dependent_service的接口。
 
+## trace埋点场景
+1、gin server
+2、http client
+3、gorm client
+
 ## 运行代码示例，上报可观测数据到AnyRobot
 1、下载go依赖，进入上一层目录执行下面命令
 ```shell
