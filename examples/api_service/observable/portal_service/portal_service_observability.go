@@ -30,9 +30,9 @@ func main() {
 // desensitizeUserName 用户名称脱敏
 func desensitizeUserName(name string, ctx context.Context) string {
 	var err error
-	newCtx, span := ar_trace.StartInternalSpan(ctx)
+	ctx, span := ar_trace.StartInternalSpan(ctx)
 	// 结束span时，err如果不为空的话，则span状态设置为error
-	defer func() { ar_trace.EndSpan(newCtx, err) }()
+	defer func() { ar_trace.EndSpan(ctx, err) }()
 	// 不设置span name的话，span name 默认为函数名称
 	span.SetName("用户名称脱敏")
 
@@ -48,7 +48,7 @@ func desensitizeUserName(name string, ctx context.Context) string {
 	}
 
 	// 输出支持与trace关联的log
-	ar_log.Info(newCtx, "用户名称脱敏成功")
+	ar_log.Info(ctx, "用户名称脱敏成功")
 
 	return string(runes)
 }
@@ -56,16 +56,16 @@ func desensitizeUserName(name string, ctx context.Context) string {
 // getUser 调用其他服务，根据用户ID获取用户名称
 func getUser(id string, ctx context.Context) string {
 	var err error
-	newCtx, span := ar_trace.StartInternalSpan(ctx)
+	ctx, span := ar_trace.StartInternalSpan(ctx)
 	// 结束span时，err如果不为空的话，则span状态设置为error
-	defer func() { ar_trace.EndSpan(newCtx, err) }()
+	defer func() { ar_trace.EndSpan(ctx, err) }()
 	// 不设置span name的话，span name 默认为函数名称
 	span.SetName("根据用户ID获取用户名称")
 
 	client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 
 	url := fmt.Sprintf("http://127.0.0.1:50081/users/%s", id)
-	req, _ := http.NewRequestWithContext(newCtx, "GET", url, nil)
+	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("请求失败:", err)

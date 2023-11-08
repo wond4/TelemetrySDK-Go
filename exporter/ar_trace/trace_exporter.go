@@ -113,7 +113,7 @@ func StopARTracer(tp *sdktrace.TracerProvider) {
 }
 
 // StartInternalSpan 内部方法调用trace埋点
-func StartInternalSpan(ctx context.Context) (newCtx context.Context, span trace.Span) {
+func StartInternalSpan(ctx context.Context) (context.Context, trace.Span) {
 	if c, ok := ctx.(*gin.Context); ok {
 		ctx = c.Request.Context()
 	}
@@ -121,14 +121,14 @@ func StartInternalSpan(ctx context.Context) (newCtx context.Context, span trace.
 	pc, file, linkNo, ok := runtime.Caller(1)
 	if !ok {
 		log.Printf("start span error")
-		newCtx, span = Tracer.Start(ctx, "unKnow", trace.WithSpanKind(trace.SpanKindInternal))
-		return
+		ctx, span := Tracer.Start(ctx, "unKnow", trace.WithSpanKind(trace.SpanKindInternal))
+		return ctx, span
 	} else {
 		funcPaths := strings.Split(runtime.FuncForPC(pc).Name(), "/")
 		spanName := funcPaths[len(funcPaths)-1]
-		newCtx, span = Tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindInternal))
+		ctx, span := Tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("func.path", fmt.Sprintf("%s:%v", file, linkNo)))
-		return
+		return ctx, span
 	}
 }
 
