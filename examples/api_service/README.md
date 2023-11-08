@@ -7,6 +7,7 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 1、gin server
 2、http client
 3、gorm client
+更多场景可参考 https://opentelemetry.io/ecosystem/registry/?s=&component=instrumentation&language=go
 
 ## 运行代码示例，上报可观测数据到AnyRobot
 1、下载go依赖，进入上一层目录执行下面命令
