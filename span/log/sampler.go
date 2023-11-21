@@ -130,7 +130,7 @@ func NewDefaultSamplerLogger() *SamplerLogger {
 func newRecord(typ string, message field.Field) field.Field {
 	record := field.MallocStructField(2)
 	record.Set(typ, message)
-	record.Set("FieldType", field.StringField(typ))
+	record.Set("Type", field.StringField(typ))
 	return record
 }
 
