@@ -10,19 +10,19 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 更多场景可参考 https://opentelemetry.io/ecosystem/registry/?s=&component=instrumentation&language=go
 
 ## 运行代码示例，上报可观测数据到AnyRobot
-1、下载go依赖，进入上一层目录执行下面命令
+1、下载go依赖，进入本文件所在目录执行下面命令
 ```shell
 go mod tidy
 ```
 2、设置环境变量,其中AnyRobot的IP地址和端口根据情况修改
 ```shell
-export TELEMETRY_TRACE_ENDPOINT=10.4.104.243:80/api/feed_ingester/v1/jobs/job-a2491f67d02e482c/events
+export TELEMETRY_TRACE_ENDPOINT=http://10.4.104.243:80/api/feed_ingester/v1/jobs/job-a2491f67d02e482c/events
 export TELEMETRY_TRACE_ENABLED=true
 ```
 3、运行两个golang服务
 ```shell
-go run dependent_service_observability.go
-go run portal_service_observability.go
+go run observable/dependent_service/dependent_service_observability.go
+go run observable/portal_service/portal_service_observability.go
 ```
 4、外部请求
 ```shell
