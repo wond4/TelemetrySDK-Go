@@ -10,12 +10,21 @@ import (
 	spanLog "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
 	sdkRuntime "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
+	"flag"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // 跨包实现接口占位用。
@@ -27,6 +36,19 @@ var (
 	// BLogger 全局业务日志记录器
 	BLogger spanLog.Logger
 )
+
+// configmap相关配置
+var cmNamespace = "anyrobot"
+var cmName = "cnao-aso-cm"
+var cmMapKeyLog = "log-sdk-config.yaml"
+
+// LogConfig 程序日志记录器配置，结构体映射到YAML数据结构
+type LogConfig struct {
+	Enabled       string   `yaml:"enabled"`
+	Level         string   `yaml:"level"`
+	EnabledAllPod string   `yaml:"enabledAllPod"`
+	EnabledPods   []string `yaml:"enabledPods"`
+}
 
 // SpanExporter 导出数据到AnyRobot Feed Ingester的 Log 数据接收器。
 type SpanExporter struct {
@@ -64,10 +86,29 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 
 // init 包初始化函数，初始化全局日志记录器
 func init() {
-	Logger = InitARLogger()
+	var kubeconfig *string
+	if home := homedir.HomeDir(); home != "" {
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+	flag.Parse()
+
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	watchConfigMap(clientset)
+
+	Logger = InitARLogger("false", "")
 	BLogger = InitBusinessLogger()
-	Logger.Info("AnyRobot Logger init success")
-	BLogger.Info("AnyRobot BLogger init success")
+
 }
 
 // Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
@@ -106,12 +147,10 @@ func Fatal(ctx context.Context, msg string) {
 // ServerVersion 微服务版本
 // ServerInstance 微服务实例标识
 // logLevel 日志等级
-func InitARLogger() spanLog.Logger {
+func InitARLogger(logEnabled string, logLevel string) spanLog.Logger {
 	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
 	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
 	serverInstance := os.Getenv("HOSTNAME")
-	logEnabled := os.Getenv("TELEMETRY_LOG_ENABLED")
-	logLevel := os.Getenv("TELEMETRY_LOG_LEVEL")
 	if logEnabled != "true" {
 		logLevel = "off"
 	}
@@ -135,6 +174,8 @@ func InitARLogger() spanLog.Logger {
 	go systemLogRunner.Run()
 	ARLogger.SetLevel(getLogLevel(logLevel))
 	ARLogger.SetRuntime(systemLogRunner)
+
+	ARLogger.Info("AnyRobot Logger init success")
 
 	return ARLogger
 }
@@ -181,5 +222,94 @@ func InitBusinessLogger() spanLog.Logger {
 	go systemLogRunner.Run()
 	businessLogger.SetRuntime(systemLogRunner)
 
+	businessLogger.Info("AnyRobot BLogger init success")
 	return businessLogger
+}
+
+func watchConfigMap(clientset *kubernetes.Clientset) {
+	configMapClient := clientset.CoreV1().ConfigMaps(cmNamespace)
+
+	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fmt.Println("Starting to watch ConfigMaps...")
+
+	go func() {
+		var lc LogConfig
+		for event := range watcher.ResultChan() {
+			switch event.Type {
+			case watch.Added:
+				fmt.Printf("ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
+
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &lc)
+				if err != nil {
+					fmt.Printf("error: %v", err)
+				}
+
+				Logger = InitARLogger(getLogEnabled(&lc), lc.Level)
+			case watch.Modified:
+				fmt.Printf("ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
+
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &lc)
+				if err != nil {
+					fmt.Printf("error: %v", err)
+				}
+
+				Logger = InitARLogger(getLogEnabled(&lc), lc.Level)
+			case watch.Deleted:
+				fmt.Printf("ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
+				Logger = InitARLogger("false", "")
+			}
+		}
+	}()
+
+}
+
+// getLogEnabled 获取日志记录器开关配置。如果功能开关为false，则不开启日志记录；反之，如果所有微服务开关为true，则开启日志记录；
+// 反之，则判断pod名称前缀是否在配置中，如在则开启日志记录。
+func getLogEnabled(lc *LogConfig) (logEnabled string) {
+	if lc.Enabled == "true" {
+		if lc.EnabledAllPod == "true" {
+			logEnabled = "true"
+		} else {
+			for _, item := range lc.EnabledPods {
+				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
+					logEnabled = "true"
+					return
+				}
+			}
+		}
+	} else {
+		logEnabled = "false"
+	}
+	return
+}
+
+// getPodNamePrefix 获取pod名称前面不变的部分
+func getPodNamePrefix(podName string) string {
+	if lastIndex := strings.LastIndex(podName, "-"); lastIndex != -1 {
+		if isAllDigits(podName[lastIndex+1:]) {
+			return podName[:lastIndex]
+		} else {
+			if last2Index := strings.LastIndex(podName[:lastIndex], "-"); last2Index != -1 {
+				return podName[:last2Index]
+			} else {
+				return podName[:lastIndex]
+			}
+		}
+	} else {
+		return podName
+	}
+}
+
+// isAllDigits 检查字符串是否全部由数字组成。
+func isAllDigits(s string) bool {
+	for _, r := range s {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }
