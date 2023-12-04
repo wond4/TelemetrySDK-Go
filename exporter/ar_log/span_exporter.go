@@ -88,7 +88,10 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 func init() {
 	Logger = InitARLogger("false", "")
 	BLogger = InitBusinessLogger()
-	watchConfigMap(initKubeClient())
+
+	if kubeClient := initKubeClient(); kubeClient != nil {
+		watchConfigMap(kubeClient)
+	}
 }
 
 // Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
@@ -207,6 +210,12 @@ func InitBusinessLogger() spanLog.Logger {
 }
 
 func initKubeClient() *kubernetes.Clientset {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err)
+		}
+	}()
+
 	// 使用Pod内的Service Account来创建一个kubernetes api客户端
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -223,7 +232,7 @@ func initKubeClient() *kubernetes.Clientset {
 
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err.Error())
 	}
 
 	return client

@@ -97,7 +97,9 @@ func init() {
 	// 先初始化一个不记录链路数据的全局链路数据记录器
 	UpdateTracer("false", "")
 	// 监听configmap的内容，更新全局链路数据记录器的配置
-	watchConfigMap(initKubeClient())
+	if kubeClient := initKubeClient(); kubeClient != nil {
+		watchConfigMap(kubeClient)
+	}
 }
 
 // UpdateTracer 更新全局链路数据记录器
@@ -228,6 +230,12 @@ func EndSpan(ctx context.Context, err error) {
 }
 
 func initKubeClient() *kubernetes.Clientset {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err)
+		}
+	}()
+
 	// 使用Pod内的Service Account来创建一个kubernetes api客户端
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -244,7 +252,7 @@ func initKubeClient() *kubernetes.Clientset {
 
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err.Error())
 	}
 
 	return client
