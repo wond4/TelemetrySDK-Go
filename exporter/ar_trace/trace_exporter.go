@@ -17,11 +17,21 @@ import (
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	"gopkg.in/yaml.v3"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // 跨包实现接口占位用。
@@ -33,6 +43,21 @@ var Tracer = otel.GetTracerProvider().Tracer(
 	trace.WithInstrumentationVersion(version.TelemetrySDKVersion),
 	trace.WithSchemaURL(version.TraceInstrumentationURL),
 )
+
+var tp = (*sdktrace.TracerProvider)(nil)
+
+// configmap相关配置
+var cmNamespace = "anyrobot"
+var cmName = "cnao-aso-cm"
+var cmMapKeyLog = "trace-sdk-config.yaml"
+
+// TraceConfig 链路数据记录器配置，结构体映射到YAML数据结构
+type TraceConfig struct {
+	Enabled       string   `yaml:"enabled"`
+	Endpoint      string   `yaml:"endpoint"`
+	EnabledAllPod string   `yaml:"enabledAllPod"`
+	EnabledPods   []string `yaml:"enabledPods"`
+}
 
 // TraceExporter 导出数据到AnyRobot Feed Ingester的 Event 数据接收器。
 type TraceExporter struct {
@@ -65,6 +90,61 @@ func NewExporter(c public.Client) *TraceExporter {
 // TraceResource 传入 Trace 的默认Resource。
 func TraceResource() *sdkresource.Resource {
 	return resource.TraceResource()
+}
+
+// init 包初始化函数，初始化全局链路数据记录器
+func init() {
+	// 先初始化一个不记录链路数据的全局链路数据记录器
+	UpdateTracer("false", "")
+	// 监听configmap的内容，更新全局链路数据记录器的配置
+	watchConfigMap(initKubeClient())
+}
+
+// UpdateTracer 更新全局链路数据记录器
+func UpdateTracer(traceEnabled string, traceEndpoint string) {
+	if traceEnabled == "true" {
+		serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
+		serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+		serverInstance := os.Getenv("HOSTNAME")
+
+		resource.SetServiceName(serverName)
+		resource.SetServiceVersion(serverVersion)
+		resource.SetServiceInstance(serverInstance)
+
+		traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceEndpoint),
+			public.WithCompression(1), public.WithTimeout(10*time.Second),
+			public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
+		traceExporter := NewExporter(traceClient)
+		tp = sdktrace.NewTracerProvider(
+			sdktrace.WithBatcher(traceExporter,
+				sdktrace.WithMaxExportBatchSize(1000)),
+			sdktrace.WithResource(TraceResource()))
+
+		otel.SetTracerProvider(tp)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	} else {
+		ShutdownTracer()
+		otel.SetTracerProvider(trace.NewNoopTracerProvider())
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	}
+}
+
+// GetTracer 获取全局链路数据记录器
+func GetTracer() *sdktrace.TracerProvider {
+	return tp
+}
+
+// ShutdownTracer 关闭全局链路数据记录器
+func ShutdownTracer() {
+	if tp == nil {
+		return
+	}
+
+	if err := tp.Shutdown(context.Background()); err != nil {
+		log.Printf("[TelemetrySDK]Error shutting down tracer provider: %v", err)
+	}
+
+	tp = nil
 }
 
 // InitARTracer 初始化上报到AnyRobot的链路数据记录器
@@ -145,4 +225,112 @@ func EndSpan(ctx context.Context, err error) {
 		span.SetStatus(codes.Ok, "OK")
 	}
 	span.End()
+}
+
+func initKubeClient() *kubernetes.Clientset {
+	// 使用Pod内的Service Account来创建一个kubernetes api客户端
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端\n")
+		// 当在集群外部调试时，使用kubeconfig文件
+		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
+	}
+
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return client
+}
+
+func watchConfigMap(clientset *kubernetes.Clientset) {
+	configMapClient := clientset.CoreV1().ConfigMaps(cmNamespace)
+
+	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
+
+	go func() {
+		var tc TraceConfig
+		for event := range watcher.ResultChan() {
+			switch event.Type {
+			case watch.Added:
+				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
+
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &tc)
+				if err != nil {
+					fmt.Printf("[TelemetrySDK]error: %v", err)
+				}
+
+				UpdateTracer(getTraceEnabled(&tc), tc.Endpoint)
+			case watch.Modified:
+				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
+
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &tc)
+				if err != nil {
+					fmt.Printf("[TelemetrySDK]error: %v", err)
+				}
+
+				UpdateTracer(getTraceEnabled(&tc), tc.Endpoint)
+			case watch.Deleted:
+				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
+				UpdateTracer("false", "")
+			}
+		}
+	}()
+
+}
+
+// getTraceEnabled 获取链路数据记录器开关配置。如果功能开关为false，则不开启链路数据记录；反之，如果所有微服务开关为true，则开启链路数据记录；
+// 反之，则判断pod名称前缀是否在配置中，如在则开启链路数据记录。
+func getTraceEnabled(tc *TraceConfig) string {
+	if tc.Enabled == "true" {
+		if tc.EnabledAllPod == "true" {
+			return "true"
+		} else {
+			for _, item := range tc.EnabledPods {
+				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
+					return "true"
+				}
+			}
+		}
+	}
+	return "false"
+}
+
+// getPodNamePrefix 获取pod名称前面不变的部分
+func getPodNamePrefix(podName string) string {
+	if lastIndex := strings.LastIndex(podName, "-"); lastIndex != -1 {
+		if isAllDigits(podName[lastIndex+1:]) {
+			return podName[:lastIndex]
+		} else {
+			if last2Index := strings.LastIndex(podName[:lastIndex], "-"); last2Index != -1 {
+				return podName[:last2Index]
+			} else {
+				return podName[:lastIndex]
+			}
+		}
+	} else {
+		return podName
+	}
+}
+
+// isAllDigits 检查字符串是否全部由数字组成。
+func isAllDigits(s string) bool {
+	for _, r := range s {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }

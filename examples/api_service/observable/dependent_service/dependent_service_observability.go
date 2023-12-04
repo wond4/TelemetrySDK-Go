@@ -20,8 +20,7 @@ type User struct {
 }
 
 func main() {
-	arTracerProvider := ar_trace.InitARTracer()
-	defer ar_trace.StopARTracer(arTracerProvider)
+	defer ar_trace.ShutdownTracer()
 
 	initDB()
 

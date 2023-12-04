@@ -86,30 +86,9 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 
 // init 包初始化函数，初始化全局日志记录器
 func init() {
-	// 使用Pod内的Service Account来创建一个kubernetes api客户端
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端\n")
-		// 当在集群外部调试时，使用kubeconfig文件
-		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			panic(err.Error())
-		}
-	} else {
-		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	watchConfigMap(clientset)
-
 	Logger = InitARLogger("false", "")
 	BLogger = InitBusinessLogger()
-
+	watchConfigMap(initKubeClient())
 }
 
 // Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
@@ -227,15 +206,38 @@ func InitBusinessLogger() spanLog.Logger {
 	return businessLogger
 }
 
-func watchConfigMap(clientset *kubernetes.Clientset) {
-	configMapClient := clientset.CoreV1().ConfigMaps(cmNamespace)
+func initKubeClient() *kubernetes.Clientset {
+	// 使用Pod内的Service Account来创建一个kubernetes api客户端
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端\n")
+		// 当在集群外部调试时，使用kubeconfig文件
+		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
+	}
+
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return client
+}
+
+func watchConfigMap(client *kubernetes.Clientset) {
+	configMapClient := client.CoreV1().ConfigMaps(cmNamespace)
 
 	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
 	if err != nil {
 		panic(err.Error())
 	}
 
-	fmt.Println("Starting to watch ConfigMaps...")
+	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
 
 	go func() {
 		var lc LogConfig
@@ -270,22 +272,19 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 
 // getLogEnabled 获取日志记录器开关配置。如果功能开关为false，则不开启日志记录；反之，如果所有微服务开关为true，则开启日志记录；
 // 反之，则判断pod名称前缀是否在配置中，如在则开启日志记录。
-func getLogEnabled(lc *LogConfig) (logEnabled string) {
+func getLogEnabled(lc *LogConfig) string {
 	if lc.Enabled == "true" {
 		if lc.EnabledAllPod == "true" {
-			logEnabled = "true"
+			return "true"
 		} else {
 			for _, item := range lc.EnabledPods {
 				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
-					logEnabled = "true"
-					return
+					return "true"
 				}
 			}
 		}
-	} else {
-		logEnabled = "false"
 	}
-	return
+	return "false"
 }
 
 // getPodNamePrefix 获取pod名称前面不变的部分

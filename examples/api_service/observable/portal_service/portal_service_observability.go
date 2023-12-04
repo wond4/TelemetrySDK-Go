@@ -14,8 +14,7 @@ import (
 )
 
 func main() {
-	arTracerProvider := ar_trace.InitARTracer()
-	defer ar_trace.StopARTracer(arTracerProvider)
+	defer ar_trace.ShutdownTracer()
 	r := gin.Default()
 	r.Use(otelgin.Middleware("my-server-portal"))
 	r.GET("/users/:id", func(c *gin.Context) {
