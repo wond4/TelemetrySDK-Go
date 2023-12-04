@@ -236,7 +236,7 @@ func initKubeClient() *kubernetes.Clientset {
 		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			panic(err.Error())
+			fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端失败：%v\n", err.Error())
 		}
 	} else {
 		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
