@@ -10,13 +10,13 @@ import (
 	spanLog "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
 	sdkRuntime "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
-	"flag"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"os"
@@ -86,17 +86,18 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 
 // init 包初始化函数，初始化全局日志记录器
 func init() {
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	flag.Parse()
-
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	// 使用Pod内的Service Account来创建一个kubernetes api客户端
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端\n")
+		// 当在集群外部调试时，使用kubeconfig文件
+		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
@@ -241,25 +242,25 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
-				fmt.Printf("ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
+				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
 				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &lc)
 				if err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
 				Logger = InitARLogger(getLogEnabled(&lc), lc.Level)
 			case watch.Modified:
-				fmt.Printf("ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
+				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
 				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &lc)
 				if err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
 				Logger = InitARLogger(getLogEnabled(&lc), lc.Level)
 			case watch.Deleted:
-				fmt.Printf("ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
+				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
 				Logger = InitARLogger("false", "")
 			}
 		}

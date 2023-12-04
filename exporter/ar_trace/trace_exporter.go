@@ -108,7 +108,7 @@ func StopARTracer(tp *sdktrace.TracerProvider) {
 	}
 
 	if err := tp.Shutdown(context.Background()); err != nil {
-		log.Printf("Error shutting down tracer provider: %v", err)
+		log.Printf("[TelemetrySDK]Error shutting down tracer provider: %v", err)
 	}
 }
 
@@ -120,7 +120,7 @@ func StartInternalSpan(ctx context.Context) (context.Context, trace.Span) {
 
 	pc, file, linkNo, ok := runtime.Caller(1)
 	if !ok {
-		log.Printf("start span error")
+		log.Printf("[TelemetrySDK]start span error")
 		ctx, span := Tracer.Start(ctx, "unKnow", trace.WithSpanKind(trace.SpanKindInternal))
 		return ctx, span
 	} else {
