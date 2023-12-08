@@ -45,6 +45,7 @@ var Tracer = otel.GetTracerProvider().Tracer(
 )
 
 var tp = (*sdktrace.TracerProvider)(nil)
+var te = &TraceExporter{}
 
 // configmap相关配置
 var cmNamespace = "anyrobot"
@@ -95,39 +96,62 @@ func TraceResource() *sdkresource.Resource {
 // init 包初始化函数，初始化全局链路数据记录器
 func init() {
 	// 先初始化一个不记录链路数据的全局链路数据记录器
-	UpdateTracer("false", "")
+	InitSilentTracer()
 	// 监听configmap的内容，更新全局链路数据记录器的配置
 	if kubeClient := initKubeClient(); kubeClient != nil {
 		watchConfigMap(kubeClient)
 	}
 }
 
-// UpdateTracer 更新全局链路数据记录器
-func UpdateTracer(traceEnabled string, traceEndpoint string) {
-	if traceEnabled == "true" {
-		serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
-		serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
-		serverInstance := os.Getenv("HOSTNAME")
+// InitSilentTracer 初始化全局链路数据记录器，不记录数据
+func InitSilentTracer() {
+	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
+	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+	serverInstance := os.Getenv("HOSTNAME")
 
-		resource.SetServiceName(serverName)
-		resource.SetServiceVersion(serverVersion)
-		resource.SetServiceInstance(serverInstance)
+	resource.SetServiceName(serverName)
+	resource.SetServiceVersion(serverVersion)
+	resource.SetServiceInstance(serverInstance)
 
+	traceClient := public.NewSilentClient()
+	te = NewExporter(traceClient)
+	tp = sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(te,
+			sdktrace.WithMaxExportBatchSize(1000)),
+		sdktrace.WithResource(TraceResource()))
+
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+}
+
+// UpdateTracerClient 更新全局链路数据记录器的数据发送客户端
+func UpdateTracerClient(traceEnabled string, traceEndpoint string) {
+	if traceEnabled == "true" && traceEndpoint != "" {
 		traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceEndpoint),
 			public.WithCompression(1), public.WithTimeout(10*time.Second),
 			public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
-		traceExporter := NewExporter(traceClient)
-		tp = sdktrace.NewTracerProvider(
-			sdktrace.WithBatcher(traceExporter,
-				sdktrace.WithMaxExportBatchSize(1000)),
-			sdktrace.WithResource(TraceResource()))
-
-		otel.SetTracerProvider(tp)
-		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		StopTracerClient()
+		te.SetClient(traceClient)
+	} else if traceEnabled == "true" && traceEndpoint == "" {
+		traceClient := public.NewConsoleClient()
+		StopTracerClient()
+		te.SetClient(traceClient)
 	} else {
-		ShutdownTracer()
-		otel.SetTracerProvider(trace.NewNoopTracerProvider())
-		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		traceClient := public.NewSilentClient()
+		StopTracerClient()
+		te.SetClient(traceClient)
+	}
+}
+
+// StopTracerClient 关闭全局链路数据记录器的数据发送客户端
+func StopTracerClient() {
+	// 关闭旧的client
+	// 设置超时时间
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := te.GetClient().Stop(ctx)
+	if err != nil {
+		log.Printf("[TelemetrySDK]Error shutting down tracer client: %v", err)
 	}
 }
 
@@ -142,7 +166,11 @@ func ShutdownTracer() {
 		return
 	}
 
-	if err := tp.Shutdown(context.Background()); err != nil {
+	// 设置超时时间
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := tp.Shutdown(ctx); err != nil {
 		log.Printf("[TelemetrySDK]Error shutting down tracer provider: %v", err)
 	}
 
@@ -189,7 +217,11 @@ func StopARTracer(tp *sdktrace.TracerProvider) {
 		return
 	}
 
-	if err := tp.Shutdown(context.Background()); err != nil {
+	// 设置超时时间
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := tp.Shutdown(ctx); err != nil {
 		log.Printf("[TelemetrySDK]Error shutting down tracer provider: %v", err)
 	}
 }
@@ -280,7 +312,7 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				UpdateTracer(getTraceEnabled(&tc), tc.Endpoint)
+				UpdateTracerClient(getTraceEnabled(&tc), tc.Endpoint)
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
@@ -289,10 +321,10 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				UpdateTracer(getTraceEnabled(&tc), tc.Endpoint)
+				UpdateTracerClient(getTraceEnabled(&tc), tc.Endpoint)
 			case watch.Deleted:
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				UpdateTracer("false", "")
+				UpdateTracerClient("false", "")
 			}
 		}
 	}()
