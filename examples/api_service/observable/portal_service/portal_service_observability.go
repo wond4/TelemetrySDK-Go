@@ -14,7 +14,9 @@ import (
 )
 
 func main() {
+	ar_trace.InitTracer("cm", "ar-ob-app-cm", "my-service")
 	defer ar_trace.ShutdownTracer()
+	ar_log.InitLogger("cm", "ar-ob-app-cm", "my-service")
 	r := gin.Default()
 	r.Use(otelgin.Middleware("my-server-portal"))
 	r.GET("/users/:id", func(c *gin.Context) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
 	"errors"
 	"fmt"
@@ -20,8 +21,9 @@ type User struct {
 }
 
 func main() {
+	ar_trace.InitTracer("cm", "ar-ob-app-cm", "my-service")
 	defer ar_trace.ShutdownTracer()
-
+	ar_log.InitLogger("cm", "ar-ob-app-cm", "my-service")
 	initDB()
 
 	r := gin.Default()

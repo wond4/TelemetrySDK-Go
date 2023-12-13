@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/common"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
@@ -22,16 +23,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	"log"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
-	"unicode"
 )
 
 // 跨包实现接口占位用。
@@ -46,18 +42,6 @@ var Tracer = otel.GetTracerProvider().Tracer(
 
 var tp = (*sdktrace.TracerProvider)(nil)
 var te = &TraceExporter{}
-
-// configmap相关配置
-var cmName = "ar-ob-app-cm"
-var cmMapKeyLog = "trace-sdk-config.yaml"
-
-// TraceConfig 链路数据记录器配置，结构体映射到YAML数据结构
-type TraceConfig struct {
-	Enabled       string   `yaml:"enabled"`
-	Endpoint      string   `yaml:"endpoint"`
-	EnabledAllPod string   `yaml:"enabledAllPod"`
-	EnabledPods   []string `yaml:"enabledPods"`
-}
 
 // TraceExporter 导出数据到AnyRobot Feed Ingester的 Event 数据接收器。
 type TraceExporter struct {
@@ -92,24 +76,30 @@ func TraceResource() *sdkresource.Resource {
 	return resource.TraceResource()
 }
 
-// init 包初始化函数，初始化全局链路数据记录器
-func init() {
+// InitTracer 初始化函数，初始化全局链路数据记录器
+// cfgType 配置类型，可选：cm、yaml
+// cfgName 配置文件名称，如配置类型为cm，则该参数为configmap的名称；如配置类型为yaml，则该参数为yaml文件的路径，比如./ob-app.yaml
+// serverName 微服务名称
+func InitTracer(cfgType string, cfgName string, serverName string) {
 	// 先初始化一个不记录链路数据的全局链路数据记录器
-	InitSilentTracer()
-	// 监听configmap的内容，更新全局链路数据记录器的配置
-	if kubeClient := initKubeClient(); kubeClient != nil {
-		watchConfigMap(kubeClient)
+	InitSilentTracer(serverName)
+	if cfgType == "cm" { // 如果配置为configmap形式
+		// 监听configmap的内容，更新全局链路数据记录器的配置
+		config.CmName = cfgName
+		if kubeClient := config.InitKubeClient(); kubeClient != nil {
+			watchConfigMap(kubeClient)
+		}
+	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
+
 	}
+
 }
 
 // InitSilentTracer 初始化全局链路数据记录器，不记录数据
-func InitSilentTracer() {
-	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
-	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+func InitSilentTracer(serverName string) {
 	serverInstance := os.Getenv("HOSTNAME")
 
 	resource.SetServiceName(serverName)
-	resource.SetServiceVersion(serverVersion)
 	resource.SetServiceInstance(serverInstance)
 
 	traceClient := public.NewSilentClient()
@@ -260,39 +250,10 @@ func EndSpan(ctx context.Context, err error) {
 	span.End()
 }
 
-func initKubeClient() *kubernetes.Clientset {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err)
-		}
-	}()
-
-	// 使用Pod内的Service Account来创建一个kubernetes api客户端
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端\n")
-		// 当在集群外部调试时，使用kubeconfig文件
-		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端失败：%v\n", err.Error())
-		}
-	} else {
-		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
-	}
-
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err.Error())
-	}
-
-	return client
-}
-
 func watchConfigMap(clientset *kubernetes.Clientset) {
 	configMapClient := clientset.CoreV1().ConfigMaps("")
 
-	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
+	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -300,27 +261,27 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
 
 	go func() {
-		var tc TraceConfig
+		var tc config.CmTraceConfig
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
 				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &tc)
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
 				if err != nil {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				UpdateTracerClient(getTraceEnabled(&tc), tc.Endpoint)
+				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &tc)
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
 				if err != nil {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				UpdateTracerClient(getTraceEnabled(&tc), tc.Endpoint)
+				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
 			case watch.Deleted:
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
 				UpdateTracerClient("false", "")
@@ -328,48 +289,4 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 		}
 	}()
 
-}
-
-// getTraceEnabled 获取链路数据记录器开关配置。如果功能开关为false，则不开启链路数据记录；反之，如果所有微服务开关为true，则开启链路数据记录；
-// 反之，则判断pod名称前缀是否在配置中，如在则开启链路数据记录。
-func getTraceEnabled(tc *TraceConfig) string {
-	if tc.Enabled == "true" {
-		if tc.EnabledAllPod == "true" {
-			return "true"
-		} else {
-			for _, item := range tc.EnabledPods {
-				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
-					return "true"
-				}
-			}
-		}
-	}
-	return "false"
-}
-
-// getPodNamePrefix 获取pod名称前面不变的部分
-func getPodNamePrefix(podName string) string {
-	if lastIndex := strings.LastIndex(podName, "-"); lastIndex != -1 {
-		if isAllDigits(podName[lastIndex+1:]) {
-			return podName[:lastIndex]
-		} else {
-			if last2Index := strings.LastIndex(podName[:lastIndex], "-"); last2Index != -1 {
-				return podName[:last2Index]
-			} else {
-				return podName[:lastIndex]
-			}
-		}
-	} else {
-		return podName
-	}
-}
-
-// isAllDigits 检查字符串是否全部由数字组成。
-func isAllDigits(s string) bool {
-	for _, r := range s {
-		if !unicode.IsDigit(r) {
-			return false
-		}
-	}
-	return true
 }

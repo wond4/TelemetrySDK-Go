@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	ar_log.InitBusinessLogger()
 	fmt.Println("hello world")
 
 	msg := make(map[string]interface{})

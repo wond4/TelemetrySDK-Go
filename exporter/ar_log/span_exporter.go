@@ -2,6 +2,7 @@ package ar_log
 
 import (
 	"context"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/encoder"
@@ -16,15 +17,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
-	"unicode"
 )
 
 // 跨包实现接口占位用。
@@ -36,18 +33,6 @@ var (
 	// BLogger 全局业务日志记录器
 	BLogger spanLog.Logger
 )
-
-// configmap相关配置
-var cmName = "ar-ob-app-cm"
-var cmMapKeyLog = "log-sdk-config.yaml"
-
-// LogConfig 程序日志记录器配置，结构体映射到YAML数据结构
-type LogConfig struct {
-	Enabled       string   `yaml:"enabled"`
-	Level         string   `yaml:"level"`
-	EnabledAllPod string   `yaml:"enabledAllPod"`
-	EnabledPods   []string `yaml:"enabledPods"`
-}
 
 // SpanExporter 导出数据到AnyRobot Feed Ingester的 Log 数据接收器。
 type SpanExporter struct {
@@ -83,14 +68,23 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 	}
 }
 
-// init 包初始化函数，初始化全局日志记录器
-func init() {
-	Logger = InitARLogger("false", "")
-	BLogger = InitBusinessLogger()
+// InitLogger 初始化上报到AnyRobot的程序日志记录器
+// cfgType 配置类型，可选：cm、yaml
+// cfgName 配置文件名称，如配置类型为cm，则该参数为configmap的名称；如配置类型为yaml，则该参数为yaml文件的路径，比如./ob-app.yaml
+// serverName 微服务名称
+func InitLogger(cfgType string, cfgName string, serverName string) {
+	Logger = initARLogger("false", "", serverName)
 
-	if kubeClient := initKubeClient(); kubeClient != nil {
-		watchConfigMap(kubeClient)
+	if cfgType == "cm" { // 如果配置为configmap形式
+		// 监听configmap的内容，更新全局链路数据记录器的配置
+		config.CmName = cfgName
+		if kubeClient := config.InitKubeClient(); kubeClient != nil {
+			watchConfigMap(kubeClient)
+		}
+	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
+
 	}
+
 }
 
 // Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
@@ -124,14 +118,11 @@ func Fatal(ctx context.Context, msg string) {
 		field.WithContext(ctx))
 }
 
-// InitARLogger 初始化上报到AnyRobot的日志记录器
-// ServerName 微服务名称
-// ServerVersion 微服务版本
-// ServerInstance 微服务实例标识
+// initARLogger 初始化上报到AnyRobot的日志记录器
+// logEnabled 日志开关
 // logLevel 日志等级
-func InitARLogger(logEnabled string, logLevel string) spanLog.Logger {
-	serverName := os.Getenv("TELEMETRY_SERVICE_NAME")
-	serverVersion := os.Getenv("TELEMETRY_SERVICE_VERSION")
+// ServerName 微服务名称
+func initARLogger(logEnabled string, logLevel string, serverName string) spanLog.Logger {
 	serverInstance := os.Getenv("HOSTNAME")
 	if logEnabled != "true" {
 		logLevel = "off"
@@ -141,8 +132,9 @@ func InitARLogger(logEnabled string, logLevel string) spanLog.Logger {
 	var ARLogger = spanLog.NewSamplerLogger(spanLog.WithSample(1.0), spanLog.WithLevel(getLogLevel(logLevel)))
 
 	// 设置微服务相关信息
-	resource.SetServiceName(serverName)
-	resource.SetServiceVersion(serverVersion)
+	if serverName != "" {
+		resource.SetServiceName(serverName)
+	}
 	resource.SetServiceInstance(serverInstance)
 
 	// 设置日志打印标准输出
@@ -208,39 +200,10 @@ func InitBusinessLogger() spanLog.Logger {
 	return businessLogger
 }
 
-func initKubeClient() *kubernetes.Clientset {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err)
-		}
-	}()
-
-	// 使用Pod内的Service Account来创建一个kubernetes api客户端
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端\n")
-		// 当在集群外部调试时，使用kubeconfig文件
-		kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			fmt.Printf("[TelemetrySDK]在kubernetes集群主机创建kubernetes api客户端失败：%v\n", err.Error())
-		}
-	} else {
-		fmt.Printf("[TelemetrySDK]在kubernetes集群内部创建kubernetes api客户端\n")
-	}
-
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]创建kubernetes api客户端失败：%v\n", err.Error())
-	}
-
-	return client
-}
-
 func watchConfigMap(client *kubernetes.Clientset) {
 	configMapClient := client.CoreV1().ConfigMaps("")
 
-	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
+	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -248,76 +211,32 @@ func watchConfigMap(client *kubernetes.Clientset) {
 	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
 
 	go func() {
-		var lc LogConfig
+		var lc config.CmLogConfig
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
 				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &lc)
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
 				if err != nil {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				Logger = InitARLogger(getLogEnabled(&lc), lc.Level)
+				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Level, "")
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[cmMapKeyLog]), &lc)
+				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
 				if err != nil {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				Logger = InitARLogger(getLogEnabled(&lc), lc.Level)
+				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Level, "")
 			case watch.Deleted:
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				Logger = InitARLogger("false", "")
+				Logger = initARLogger("false", "", "")
 			}
 		}
 	}()
 
-}
-
-// getLogEnabled 获取日志记录器开关配置。如果功能开关为false，则不开启日志记录；反之，如果所有微服务开关为true，则开启日志记录；
-// 反之，则判断pod名称前缀是否在配置中，如在则开启日志记录。
-func getLogEnabled(lc *LogConfig) string {
-	if lc.Enabled == "true" {
-		if lc.EnabledAllPod == "true" {
-			return "true"
-		} else {
-			for _, item := range lc.EnabledPods {
-				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
-					return "true"
-				}
-			}
-		}
-	}
-	return "false"
-}
-
-// getPodNamePrefix 获取pod名称前面不变的部分
-func getPodNamePrefix(podName string) string {
-	if lastIndex := strings.LastIndex(podName, "-"); lastIndex != -1 {
-		if isAllDigits(podName[lastIndex+1:]) {
-			return podName[:lastIndex]
-		} else {
-			if last2Index := strings.LastIndex(podName[:lastIndex], "-"); last2Index != -1 {
-				return podName[:last2Index]
-			} else {
-				return podName[:lastIndex]
-			}
-		}
-	} else {
-		return podName
-	}
-}
-
-// isAllDigits 检查字符串是否全部由数字组成。
-func isAllDigits(s string) bool {
-	for _, r := range s {
-		if !unicode.IsDigit(r) {
-			return false
-		}
-	}
-	return true
 }
