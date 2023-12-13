@@ -48,8 +48,7 @@ var tp = (*sdktrace.TracerProvider)(nil)
 var te = &TraceExporter{}
 
 // configmap相关配置
-var cmNamespace = "anyrobot"
-var cmName = "cnao-aso-cm"
+var cmName = "ar-ob-app-cm"
 var cmMapKeyLog = "trace-sdk-config.yaml"
 
 // TraceConfig 链路数据记录器配置，结构体映射到YAML数据结构
@@ -291,7 +290,7 @@ func initKubeClient() *kubernetes.Clientset {
 }
 
 func watchConfigMap(clientset *kubernetes.Clientset) {
-	configMapClient := clientset.CoreV1().ConfigMaps(cmNamespace)
+	configMapClient := clientset.CoreV1().ConfigMaps("")
 
 	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
 	if err != nil {

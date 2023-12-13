@@ -38,8 +38,7 @@ var (
 )
 
 // configmap相关配置
-var cmNamespace = "anyrobot"
-var cmName = "cnao-aso-cm"
+var cmName = "ar-ob-app-cm"
 var cmMapKeyLog = "log-sdk-config.yaml"
 
 // LogConfig 程序日志记录器配置，结构体映射到YAML数据结构
@@ -239,7 +238,7 @@ func initKubeClient() *kubernetes.Clientset {
 }
 
 func watchConfigMap(client *kubernetes.Clientset) {
-	configMapClient := client.CoreV1().ConfigMaps(cmNamespace)
+	configMapClient := client.CoreV1().ConfigMaps("")
 
 	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", cmName)})
 	if err != nil {
