@@ -28,6 +28,7 @@ type CmTraceConfig struct {
 // CmLogConfig 程序日志记录器配置，结构体映射到YAML数据结构
 type CmLogConfig struct {
 	Enabled       string   `yaml:"enabled"`
+	Endpoint      string   `yaml:"endpoint"`
 	Level         string   `yaml:"level"`
 	EnabledAllPod string   `yaml:"enabledAllPod"`
 	EnabledPods   []string `yaml:"enabledPods"`

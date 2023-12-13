@@ -73,7 +73,7 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 // cfgName 配置文件名称，如配置类型为cm，则该参数为configmap的名称；如配置类型为yaml，则该参数为yaml文件的路径，比如./ob-app.yaml
 // serverName 微服务名称
 func InitLogger(cfgType string, cfgName string, serverName string) {
-	Logger = initARLogger("false", "", serverName)
+	Logger = initARLogger("false", "", "", serverName)
 
 	if cfgType == "cm" { // 如果配置为configmap形式
 		// 监听configmap的内容，更新全局链路数据记录器的配置
@@ -120,9 +120,10 @@ func Fatal(ctx context.Context, msg string) {
 
 // initARLogger 初始化上报到AnyRobot的日志记录器
 // logEnabled 日志开关
+// logEndpoint 日志上报地址，为空则打印标准输出
 // logLevel 日志等级
 // ServerName 微服务名称
-func initARLogger(logEnabled string, logLevel string, serverName string) spanLog.Logger {
+func initARLogger(logEnabled string, logEndpoint string, logLevel string, serverName string) spanLog.Logger {
 	serverInstance := os.Getenv("HOSTNAME")
 	if logEnabled != "true" {
 		logLevel = "off"
@@ -137,11 +138,25 @@ func initARLogger(logEnabled string, logLevel string, serverName string) spanLog
 	}
 	resource.SetServiceInstance(serverInstance)
 
-	// 设置日志打印标准输出
-	systemLogExporter := exporter.GetRealTimeExporter()
-	systemLogWriter := open_standard.OpenTelemetryWriter(
-		encoder.NewJsonEncoderWithExporters(systemLogExporter),
-		resource.LogResource())
+	var systemLogWriter open_standard.Writer
+	if logEndpoint == "" {
+		// 设置日志打印标准输出
+		systemLogExporter := exporter.GetRealTimeExporter()
+		systemLogWriter = open_standard.OpenTelemetryWriter(
+			encoder.NewJsonEncoderWithExporters(systemLogExporter),
+			resource.LogResource())
+	} else {
+		// 设置日志通过HTTP上报
+		systemLogClient := public.NewHTTPClient(public.WithAnyRobotURL(logEndpoint),
+			public.WithCompression(1),
+			public.WithTimeout(10*time.Second),
+			public.WithRetry(true, 5*time.Second, 20*time.Second, 1*time.Minute))
+		systemLogExporter := NewExporter(systemLogClient)
+		systemLogWriter = open_standard.OpenTelemetryWriter(
+			encoder.NewJsonEncoderWithExporters(systemLogExporter),
+			resource.LogResource())
+	}
+
 	systemLogRunner := sdkRuntime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
 	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
 
@@ -222,7 +237,7 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Level, "")
+				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Endpoint, lc.Level, "")
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
@@ -231,10 +246,10 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Level, "")
+				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Endpoint, lc.Level, "")
 			case watch.Deleted:
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				Logger = initARLogger("false", "", "")
+				Logger = initARLogger("false", "", "", "")
 			}
 		}
 	}()

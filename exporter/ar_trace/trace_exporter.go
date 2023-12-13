@@ -99,7 +99,9 @@ func InitTracer(cfgType string, cfgName string, serverName string) {
 func InitSilentTracer(serverName string) {
 	serverInstance := os.Getenv("HOSTNAME")
 
-	resource.SetServiceName(serverName)
+	if serverName != "" {
+		resource.SetServiceName(serverName)
+	}
 	resource.SetServiceInstance(serverInstance)
 
 	traceClient := public.NewSilentClient()
