@@ -12,6 +12,7 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
 	sdkRuntime "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/runtime"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,7 +83,15 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 			watchConfigMap(kubeClient)
 		}
 	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
-
+		config.CfgFileNameLog = cfgName
+		// 初始化配置
+		config.NewLogConfig()
+		Logger = initARLogger(config.YamlLogCfg.Enabled, config.YamlLogCfg.Endpoint, config.YamlLogCfg.Level, "")
+		config.LogVP.OnConfigChange(func(e fsnotify.Event) {
+			fmt.Printf("Log config file changed:%s, update logger\n", e)
+			config.LoadLogConfig()
+			Logger = initARLogger(config.YamlLogCfg.Enabled, config.YamlLogCfg.Endpoint, config.YamlLogCfg.Level, "")
+		})
 	}
 
 }

@@ -10,6 +10,7 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
 	"encoding/json"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -90,7 +91,15 @@ func InitTracer(cfgType string, cfgName string, serverName string) {
 			watchConfigMap(kubeClient)
 		}
 	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
-
+		config.CfgFileNameTrace = cfgName
+		// 初始化配置
+		config.NewTraceConfig()
+		UpdateTracerClient(config.YamlTraceCfg.Enabled, config.YamlTraceCfg.Endpoint)
+		config.TraceVP.OnConfigChange(func(e fsnotify.Event) {
+			fmt.Printf("Trace config file changed:%s, update tracer client\n", e)
+			config.LoadTraceConfig()
+			UpdateTracerClient(config.YamlTraceCfg.Enabled, config.YamlTraceCfg.Endpoint)
+		})
 	}
 
 }

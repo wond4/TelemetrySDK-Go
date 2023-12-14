@@ -21,9 +21,15 @@ type User struct {
 }
 
 func main() {
-	ar_trace.InitTracer("cm", "ar-ob-app-cm", "my-service")
+	// 通过configmap设置配置，适用于k8s集群内部应用
+	//ar_trace.InitTracer("cm", "ar-ob-app-cm", "my-service-2")
+	// 通过yaml文件设置配置，适用于k8s集群外部应用
+	ar_trace.InitTracer("yaml", "ob-app-config-trace", "my-service-2")
 	defer ar_trace.ShutdownTracer()
-	ar_log.InitLogger("cm", "ar-ob-app-cm", "my-service")
+	// 通过configmap设置配置，适用于k8s集群内部应用
+	//ar_log.InitLogger("cm", "ar-ob-app-cm", "my-service-2")
+	// 通过yaml文件设置配置，适用于k8s集群外部应用
+	ar_log.InitLogger("yaml", "ob-app-config-log", "my-service-2")
 	initDB()
 
 	r := gin.Default()
