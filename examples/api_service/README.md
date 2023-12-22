@@ -14,7 +14,7 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 ```shell
 go mod tidy
 ```
-2、设置环境变量,其中AnyRobot的IP地址和端口根据情况修改
+2、设置环境变量,其中AnyRobot的IP地址和端口根据情况修改。TELEMETRY_TRACE_ENDPOINT为空时，链路数据会打印，用于调试。
 ```shell
 export TELEMETRY_TRACE_ENDPOINT=http://10.4.104.243:80/api/feed_ingester/v1/jobs/job-a2491f67d02e482c/events
 export TELEMETRY_TRACE_ENABLED=true
