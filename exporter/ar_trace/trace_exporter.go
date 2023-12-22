@@ -83,13 +83,14 @@ func InitARTracer() *sdktrace.TracerProvider {
 		resource.SetServiceVersion(serverVersion)
 		resource.SetServiceInstance(serverInstance)
 
+        var traceClient public.Client
         if traceUrl == "" {
-			traceClient := public.NewConsoleClient()
-		} else {
-			traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceUrl),
-				public.WithCompression(1), public.WithTimeout(10*time.Second),
-				public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
-		}
+            traceClient = public.NewConsoleClient()
+        } else {
+            traceClient = public.NewHTTPClient(public.WithAnyRobotURL(traceUrl),
+                public.WithCompression(1), public.WithTimeout(10*time.Second),
+                public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
+        }
 		traceExporter := NewExporter(traceClient)
 		tracerProvider := sdktrace.NewTracerProvider(
 			sdktrace.WithBatcher(traceExporter,
