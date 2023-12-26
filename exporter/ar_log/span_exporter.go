@@ -246,6 +246,8 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
+				fmt.Printf("[TelemetrySDK]Log Config Content: %+v\n", &lc)
+
 				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Endpoint, lc.Level, "")
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
@@ -254,6 +256,8 @@ func watchConfigMap(client *kubernetes.Clientset) {
 				if err != nil {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
+
+				fmt.Printf("[TelemetrySDK]Log Config Content: %+v\n", &lc)
 
 				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Endpoint, lc.Level, "")
 			case watch.Deleted:

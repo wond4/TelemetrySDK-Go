@@ -283,6 +283,8 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
+				fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
+
 				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
@@ -291,6 +293,8 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 				if err != nil {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
+
+				fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
 
 				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
 			case watch.Deleted:

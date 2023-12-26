@@ -19,19 +19,19 @@ var CmMapKeyLog = "log-sdk-config.yaml"
 
 // CmTraceConfig 链路数据记录器配置，结构体映射到YAML数据结构
 type CmTraceConfig struct {
-	Enabled       string   `yaml:"enabled"`
-	Endpoint      string   `yaml:"endpoint"`
-	EnabledAllPod string   `yaml:"enabledAllPod"`
-	EnabledPods   []string `yaml:"enabledPods"`
+	Enabled       string `yaml:"enabled"`
+	Endpoint      string `yaml:"endpoint"`
+	EnabledAllPod string `yaml:"enabledAllPod"`
+	EnabledPods   string `yaml:"enabledPods"`
 }
 
 // CmLogConfig 程序日志记录器配置，结构体映射到YAML数据结构
 type CmLogConfig struct {
-	Enabled       string   `yaml:"enabled"`
-	Endpoint      string   `yaml:"endpoint"`
-	Level         string   `yaml:"level"`
-	EnabledAllPod string   `yaml:"enabledAllPod"`
-	EnabledPods   []string `yaml:"enabledPods"`
+	Enabled       string `yaml:"enabled"`
+	Endpoint      string `yaml:"endpoint"`
+	Level         string `yaml:"level"`
+	EnabledAllPod string `yaml:"enabledAllPod"`
+	EnabledPods   string `yaml:"enabledPods"`
 }
 
 func InitKubeClient() *kubernetes.Clientset {
@@ -70,7 +70,7 @@ func GetTraceEnabled(tc *CmTraceConfig) string {
 		if tc.EnabledAllPod == "true" {
 			return "true"
 		} else {
-			for _, item := range tc.EnabledPods {
+			for _, item := range strings.Split(tc.EnabledPods, ",") {
 				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
 					return "true"
 				}
@@ -87,7 +87,7 @@ func GetLogEnabled(lc *CmLogConfig) string {
 		if lc.EnabledAllPod == "true" {
 			return "true"
 		} else {
-			for _, item := range lc.EnabledPods {
+			for _, item := range strings.Split(lc.EnabledPods, ",") {
 				if podName := os.Getenv("HOSTNAME"); getPodNamePrefix(podName) == item {
 					return "true"
 				}
