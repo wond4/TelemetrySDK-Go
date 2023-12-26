@@ -14,10 +14,27 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 ```shell
 go mod tidy
 ```
-2、设置环境变量,其中AnyRobot的IP地址和端口根据情况修改
+2、创建configmap,其中endpoint地址为空时打印数据到标准输出，可改成实际的AnyRobot接收地址
 ```shell
-export TELEMETRY_TRACE_ENDPOINT=http://10.4.104.243:80/api/feed_ingester/v1/jobs/job-a2491f67d02e482c/events
-export TELEMETRY_TRACE_ENABLED=true
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+data:
+  log-sdk-config.yaml: |
+    enabled: "true"
+    endpoint: ""
+    level: "info"
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+  trace-sdk-config.yaml: |
+    enabled: "true"
+    endpoint: ""
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+kind: ConfigMap
+metadata:
+  name: anyshare-telemetry-sdk
+  namespace: default
+EOF
 ```
 3、运行两个golang服务
 ```shell
@@ -29,4 +46,4 @@ go run observable/portal_service/portal_service_observability.go
 curl 127.0.0.1:50080/users/1
 curl 127.0.0.1:50080/users/2
 ```
-5、登录AnyRobot页面查看应用软件可观测仪表盘
+5、登录AnyRobot仪表盘页面查看应用软件可观测仪表盘
