@@ -48,6 +48,16 @@ func (e *Exporter) ExportData(ctx context.Context, data []byte) error {
 	return e.client.UploadData(ctx, data)
 }
 
+// SetClient 设置客户端
+func (e *Exporter) SetClient(client Client) {
+	e.client = client
+}
+
+// GetClient 获取客户端
+func (e *Exporter) GetClient() Client {
+	return e.client
+}
+
 // NewExporter 创建已启动的Exporter。
 func NewExporter(client Client) *Exporter {
 	return &Exporter{

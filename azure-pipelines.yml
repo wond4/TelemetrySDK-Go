@@ -13,7 +13,7 @@ trigger:
 variables:
   - group: anyrobot-global-config
   - name: BUILD_IMAGE
-    value: "acr.aishu.cn/ar/go.build:1.19.12-20230807"
+    value: "acr.aishu.cn/ar/go.build:1.20.11-20231109"
   - name: SONARQUBE_IMAGE
     value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:4.7"
   - name: LintReportName # 此行保持一致
