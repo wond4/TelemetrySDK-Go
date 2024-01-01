@@ -10,40 +10,21 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 更多场景可参考 https://opentelemetry.io/ecosystem/registry/?s=&component=instrumentation&language=go
 
 ## 运行代码示例，上报可观测数据到AnyRobot
-1、下载go依赖，进入本文件所在目录执行下面命令
+1、准备好已经安装AnyRobot Embedded 5的最新版本anyshare/anydata/anyfabric环境
+2、修改各个产品主模块中观测数据SDK的配置，开启观测数据记录
+![telemetry-sdk-config](./images/telemetry-sdk-config.png)
+3、在anyshare/anydata/anyfabric环境主机上面下载本示例代码，进入本文件所在目录执行下面命令下载依赖
 ```shell
 go mod tidy
 ```
-2、创建configmap,其中endpoint地址为空时打印数据到标准输出，可改成实际的AnyRobot接收地址
-```shell
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-data:
-  log-sdk-config.yaml: |
-    enabled: "true"
-    endpoint: ""
-    level: "info"
-    enabledAllPod: "true"
-    enabledPods: "user-transfer"
-  trace-sdk-config.yaml: |
-    enabled: "true"
-    endpoint: ""
-    enabledAllPod: "true"
-    enabledPods: "user-transfer"
-kind: ConfigMap
-metadata:
-  name: anyshare-telemetry-sdk
-  namespace: default
-EOF
-```
-3、运行两个golang服务
+4、在anyshare/anydata/anyfabric环境主机上运行两个golang服务
 ```shell
 go run observable/dependent_service/dependent_service_observability.go
 go run observable/portal_service/portal_service_observability.go
 ```
-4、外部请求
+5、模拟外部请求
 ```shell
 curl 127.0.0.1:50080/users/1
 curl 127.0.0.1:50080/users/2
 ```
-5、登录AnyRobot仪表盘页面查看应用软件可观测仪表盘
+6、登录AnyRobot Embedded 5仪表盘页面查看应用软件可观测仪表盘
