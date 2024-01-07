@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"log"
 
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/custom_errors"
