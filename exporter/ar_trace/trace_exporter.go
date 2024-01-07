@@ -3,13 +3,19 @@ package ar_trace
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"strings"
+	"time"
+
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/common"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
-	"encoding/json"
-	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -24,11 +30,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"log"
-	"os"
-	"runtime"
-	"strings"
-	"time"
 )
 
 // 跨包实现接口占位用。
@@ -40,6 +41,14 @@ var Tracer = otel.GetTracerProvider().Tracer(
 	trace.WithInstrumentationVersion(version.TelemetrySDKVersion),
 	trace.WithSchemaURL(version.TraceInstrumentationURL),
 )
+
+func updateTracer() {
+	Tracer = otel.GetTracerProvider().Tracer(
+		version.TraceInstrumentationName,
+		trace.WithInstrumentationVersion(version.TelemetrySDKVersion),
+		trace.WithSchemaURL(version.TraceInstrumentationURL),
+	)
+}
 
 var tp = (*sdktrace.TracerProvider)(nil)
 var te = &TraceExporter{}
@@ -122,6 +131,8 @@ func InitSilentTracer(serverName string) {
 
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+	updateTracer()
 }
 
 // UpdateTracerClient 更新全局链路数据记录器的数据发送客户端
