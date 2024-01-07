@@ -73,7 +73,10 @@ func (c *HttpClient) UploadData(ctx context.Context, data []byte) error {
 		resp, err := send(c, request.Request)
 		// resp, err := c.public.Do(request.Request)
 		if err != nil {
+			log.Println("artrace send error:", err)
 			return err
+		}else{
+			log.Println("artrace send success, data: ", string(data))
 		}
 
 		var rErr error
