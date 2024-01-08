@@ -53,11 +53,9 @@ func main() {
 // desensitizeUserName 用户名称脱敏
 func desensitizeUserName(name string, ctx context.Context) string {
 	var err error
-	ctx, span := ar_trace.StartInternalSpan(ctx)
+	ctx, _ = ar_trace.StartInternalSpanSimple(ctx, "用户名称脱敏")
 	// 结束span时，err如果不为空的话，则span状态设置为error
 	defer func() { ar_trace.EndSpan(ctx, err) }()
-	// 不设置span name的话，span name 默认为函数名称
-	span.SetName("用户名称脱敏")
 
 	// 将程序错误赋值给err，便于结束span时根据err是否为空设置span状态
 	if len(name) == 0 {
@@ -79,11 +77,9 @@ func desensitizeUserName(name string, ctx context.Context) string {
 // getUser 调用其他服务，根据用户ID获取用户名称
 func getUser(id string, ctx context.Context) string {
 	var err error
-	ctx, span := ar_trace.StartInternalSpan(ctx)
+	ctx, _ = ar_trace.StartInternalSpanSimple(ctx, "根据用户ID获取用户名称")
 	// 结束span时，err如果不为空的话，则span状态设置为error
 	defer func() { ar_trace.EndSpan(ctx, err) }()
-	// 不设置span name的话，span name 默认为函数名称
-	span.SetName("根据用户ID获取用户名称")
 
 	client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 

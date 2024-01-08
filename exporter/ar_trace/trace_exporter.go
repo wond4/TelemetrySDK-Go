@@ -226,21 +226,37 @@ func StopARTracer(tp *sdktrace.TracerProvider) {
 	}
 }
 
+// StartInternalSpanSimple 简单一点的，性能损耗小一点的内部方法调用trace埋点
+func StartInternalSpanSimple(ctx context.Context, spanName string) (context.Context, trace.Span) {
+	if c, ok := ctx.(*gin.Context); ok { // 如果是gin.Context，要转换一下
+		ctx = c.Request.Context()
+	}
+
+	ctx, span := otel.GetTracerProvider().Tracer(version.TraceInstrumentationName,
+		trace.WithInstrumentationVersion(version.TelemetrySDKVersion),
+		trace.WithSchemaURL(version.TraceInstrumentationURL)).Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindInternal))
+	return ctx, span
+}
+
 // StartInternalSpan 内部方法调用trace埋点
 func StartInternalSpan(ctx context.Context) (context.Context, trace.Span) {
-	if c, ok := ctx.(*gin.Context); ok {
+	if c, ok := ctx.(*gin.Context); ok { // 如果是gin.Context，要转换一下
 		ctx = c.Request.Context()
 	}
 
 	pc, file, linkNo, ok := runtime.Caller(1)
 	if !ok {
 		log.Printf("[TelemetrySDK]start span error")
-		ctx, span := Tracer.Start(ctx, "unKnow", trace.WithSpanKind(trace.SpanKindInternal))
+		ctx, span := otel.GetTracerProvider().Tracer(version.TraceInstrumentationName,
+			trace.WithInstrumentationVersion(version.TelemetrySDKVersion),
+			trace.WithSchemaURL(version.TraceInstrumentationURL)).Start(ctx, "unKnow", trace.WithSpanKind(trace.SpanKindInternal))
 		return ctx, span
 	} else {
 		funcPaths := strings.Split(runtime.FuncForPC(pc).Name(), "/")
 		spanName := funcPaths[len(funcPaths)-1]
-		ctx, span := Tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindInternal))
+		ctx, span := otel.GetTracerProvider().Tracer(version.TraceInstrumentationName,
+			trace.WithInstrumentationVersion(version.TelemetrySDKVersion),
+			trace.WithSchemaURL(version.TraceInstrumentationURL)).Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("func.path", fmt.Sprintf("%s:%v", file, linkNo)))
 		return ctx, span
 	}

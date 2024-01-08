@@ -60,11 +60,9 @@ func main() {
 
 // getUser 根据用户ID获取用户信息
 func getUser(id string, ctx context.Context) (result User, err error) {
-	ctx, span := ar_trace.StartInternalSpan(ctx)
+	ctx, _ = ar_trace.StartInternalSpanSimple(ctx, "根据用户ID获取用户信息")
 	// 结束span时，err如果不为空的话，则span状态设置为error
 	defer func() { ar_trace.EndSpan(ctx, err) }()
-	// 不设置span name的话，span name 默认为函数名称
-	span.SetName("根据用户ID获取用户信息")
 
 	// 连接到 SQLite 数据库
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
