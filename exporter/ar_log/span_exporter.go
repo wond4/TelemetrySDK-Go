@@ -229,8 +229,7 @@ func watchConfigMap(client *kubernetes.Clientset) {
 
 	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
 	if err != nil {
-		fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
-		return
+		panic(err.Error())
 	}
 
 	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")

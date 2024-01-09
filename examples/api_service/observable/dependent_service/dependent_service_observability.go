@@ -4,7 +4,6 @@ import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -23,29 +22,14 @@ type User struct {
 
 func main() {
 	// 通过configmap设置配置，适用于k8s集群内部应用
-	// 第二个参数为configmap的名称，爱数产品各个微服务用{产品名称}-telemetry-sdk，产品名称可选：anyshare、anydata、anyfabric、anyrobot、anybackup
-	// 第三个参数为各个微服务的名称
 	ar_trace.InitTracer("cm", "anyshare-telemetry-sdk", "my-service-2")
 	// 通过yaml文件设置配置，适用于k8s集群外部应用
-	// 第二个参数为go程序执行目录下yaml文件名称，yaml文件格式可参考api_service目录下的ob-app-config-trace.yaml
-	// 第三个参数为各个微服务的名称
 	//ar_trace.InitTracer("yaml", "ob-app-config-trace", "my-service-2")
-
-	// 设置微服务版本
-	resource.SetServiceVersion("1.0.0")
-
-	// 服务停止时先把内存中的链路数据立马发送出去
 	defer ar_trace.ShutdownTracer()
-
 	// 通过configmap设置配置，适用于k8s集群内部应用
-	// 第二个参数为configmap的名称，爱数产品各个微服务用{产品名称}-telemetry-sdk，产品名称可选：anyshare、anydata、anyfabric、anyrobot、anybackup
-	// 第三个参数为各个微服务的名称
 	ar_log.InitLogger("cm", "anyshare-telemetry-sdk", "my-service-2")
 	// 通过yaml文件设置配置，适用于k8s集群外部应用
-	// 第二个参数为go程序执行目录下yaml文件名称，yaml文件格式可参考api_service目录下的ob-app-config-log.yaml
-	// 第三个参数为各个微服务的名称
 	//ar_log.InitLogger("yaml", "ob-app-config-log", "my-service-2")
-
 	initDB()
 
 	r := gin.Default()
