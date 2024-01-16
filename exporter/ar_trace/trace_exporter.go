@@ -88,7 +88,7 @@ func InitTracer(cfgType string, cfgName string, serverName string) {
 		// 监听configmap的内容，更新全局链路数据记录器的配置
 		config.CmName = cfgName
 		if kubeClient := config.InitKubeClient(); kubeClient != nil {
-			watchConfigMap(kubeClient)
+			go watchConfigMap(kubeClient)
 		}
 	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
 		config.CfgFileNameTrace = cfgName
@@ -277,19 +277,21 @@ func EndSpan(ctx context.Context, err error) {
 	span.End()
 }
 
+// watchConfigMap 监听configmap，该函数为无限循环
 func watchConfigMap(clientset *kubernetes.Clientset) {
-	configMapClient := clientset.CoreV1().ConfigMaps("")
-
-	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
-		return
-	}
-
 	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
+	var tc config.CmTraceConfig
 
-	go func() {
-		var tc config.CmTraceConfig
+	for {
+		configMapClient := clientset.CoreV1().ConfigMaps("")
+
+		watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
+		if err != nil {
+			fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
@@ -317,8 +319,12 @@ func watchConfigMap(clientset *kubernetes.Clientset) {
 			case watch.Deleted:
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
 				UpdateTracerClient("false", "")
+			case watch.Error:
+				fmt.Printf("[TelemetrySDK]Watch has closed, attempting to reconnect...\n")
+				time.Sleep(5 * time.Second)
+				break
 			}
 		}
-	}()
+	}
 
 }
