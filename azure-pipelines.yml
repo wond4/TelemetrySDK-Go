@@ -38,7 +38,7 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -83,7 +83,7 @@ stages:
         container: dotnet
         dependsOn: _1CodeCheck
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -162,7 +162,7 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -217,7 +217,7 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -262,7 +262,7 @@ stages:
         container: dotnet
         dependsOn: _4CodeCheck
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -341,7 +341,7 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -396,7 +396,7 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -442,7 +442,7 @@ stages:
         container: dotnet
         dependsOn: _7CodeCheck
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
@@ -521,7 +521,7 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
             - docker
         steps:
