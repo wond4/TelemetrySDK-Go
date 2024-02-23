@@ -40,6 +40,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -85,6 +87,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - task: DownloadBuildArtifacts@0
@@ -164,6 +168,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -219,6 +225,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -264,6 +272,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - task: DownloadBuildArtifacts@0
@@ -343,6 +353,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -398,6 +410,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -444,6 +458,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - task: DownloadBuildArtifacts@0
@@ -523,6 +539,8 @@ stages:
         pool:
           name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
