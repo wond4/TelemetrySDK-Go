@@ -38,8 +38,10 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -83,8 +85,10 @@ stages:
         container: dotnet
         dependsOn: _1CodeCheck
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - task: DownloadBuildArtifacts@0
@@ -162,8 +166,10 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -217,8 +223,10 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -262,8 +270,10 @@ stages:
         container: dotnet
         dependsOn: _4CodeCheck
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - task: DownloadBuildArtifacts@0
@@ -341,8 +351,10 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -396,8 +408,10 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
@@ -442,8 +456,10 @@ stages:
         container: dotnet
         dependsOn: _7CodeCheck
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - task: DownloadBuildArtifacts@0
@@ -521,8 +537,10 @@ stages:
         workspace:
           clean: all
         pool:
-          name: telemetrySDK-pool
+          name: ONE-Architecture-centos7.8-x86_64
           demands:
+            - Agent.OS -equals Linux
+            - Agent.OSArchitecture -equals X64
             - docker
         steps:
           - checkout: self
