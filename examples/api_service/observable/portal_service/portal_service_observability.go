@@ -18,11 +18,11 @@ func main() {
 	// 通过configmap设置配置，适用于k8s集群内部应用
 	// 第二个参数为configmap的名称，爱数产品各个微服务用{产品名称}-telemetry-sdk，产品名称可选：anyshare、anydata、anyfabric、anyrobot、anybackup
 	// 第三个参数为各个微服务的名称
-	ar_trace.InitTracer("cm", "anyshare-telemetry-sdk", "my-service-1")
+	// ar_trace.InitTracer("cm", "anyshare-telemetry-sdk", "my-service-1")
 	// 通过yaml文件设置配置，适用于k8s集群外部应用
 	// 第二个参数为go程序执行目录下yaml文件名称，yaml文件格式可参考api_service目录下的ob-app-config-trace.yaml
 	// 第三个参数为各个微服务的名称
-	//ar_trace.InitTracer("yaml", "ob-app-config-trace", "my-service-1")
+	ar_trace.InitTracer("yaml", "ob-app-config-trace", "my-service-1")
 
 	// 设置微服务版本
 	resource.SetServiceVersion("1.0.0")

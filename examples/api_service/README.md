@@ -9,6 +9,95 @@ original目录下为没有可观测数据埋点的原始代码，observable目�
 3、gorm client\
 更多场景可参考 https://opentelemetry.io/ecosystem/registry/?s=&component=instrumentation&language=go
 
+创建configmap,其中endpoint地址为空时打印数据到标准输出，可改成实际的AnyRobot接收地址。
+全部打开
+```shell
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+data:
+  log-sdk-config.yaml: |
+    enabled: "true"
+    endpoint: ""
+    level: "info"
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+  trace-sdk-config.yaml: |
+    enabled: "true"
+    endpoint: ""
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+kind: ConfigMap
+metadata:
+  name: anyshare-telemetry-sdk
+  namespace: default
+EOF
+```
+全部关闭
+```shell
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+data:
+  log-sdk-config.yaml: |
+    enabled: "false"
+    endpoint: ""
+    level: "info"
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+  trace-sdk-config.yaml: |
+    enabled: "false"
+    endpoint: ""
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+kind: ConfigMap
+metadata:
+  name: anyshare-telemetry-sdk
+  namespace: default
+EOF
+```
+开启log
+```shell
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+data:
+  log-sdk-config.yaml: |
+    enabled: "true"
+    endpoint: ""
+    level: "info"
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+  trace-sdk-config.yaml: |
+    enabled: "false"
+    endpoint: ""
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+kind: ConfigMap
+metadata:
+  name: anyshare-telemetry-sdk
+  namespace: default
+EOF
+```
+开启trace
+```shell
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+data:
+  log-sdk-config.yaml: |
+    enabled: "false"
+    endpoint: ""
+    level: "info"
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+  trace-sdk-config.yaml: |
+    enabled: "true"
+    endpoint: ""
+    enabledAllPod: "true"
+    enabledPods: "user-transfer"
+kind: ConfigMap
+metadata:
+  name: anyshare-telemetry-sdk
+  namespace: default
+EOF
+```
 ## 运行代码示例，上报可观测数据到AnyRobot
 1、准备好已经安装AnyRobot Embedded 5的最新版本anyshare/anydata/anyfabric环境\
 2、修改各个产品主模块中观测数据SDK的配置，开启观测数据记录
