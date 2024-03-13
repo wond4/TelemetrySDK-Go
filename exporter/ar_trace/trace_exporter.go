@@ -44,6 +44,10 @@ var Tracer = otel.GetTracerProvider().Tracer(
 var tp = (*sdktrace.TracerProvider)(nil)
 var te = &TraceExporter{}
 
+// 增加协程退出的context，避免出现协程泄露
+var ctxGlobal context.Context
+var cancelGlobal context.CancelFunc
+
 // TraceExporter 导出数据到AnyRobot Feed Ingester的 Event 数据接收器。
 type TraceExporter struct {
 	*public.Exporter
@@ -82,6 +86,8 @@ func TraceResource() *sdkresource.Resource {
 // cfgName 配置文件名称，如配置类型为cm，则该参数为configmap的名称；如配置类型为yaml，则该参数为yaml文件的路径，比如./ob-app.yaml
 // serverName 微服务名称
 func InitTracer(cfgType string, cfgName string, serverName string) {
+	ctxGlobal, cancelGlobal = context.WithCancel(context.Background())
+
 	// 先初始化一个不记录链路数据的全局链路数据记录器
 	InitSilentTracer(serverName)
 	if cfgType == "cm" { // 如果配置为configmap形式
@@ -162,6 +168,9 @@ func GetTracer() *sdktrace.TracerProvider {
 
 // ShutdownTracer 关闭全局链路数据记录器
 func ShutdownTracer() {
+	if cancelGlobal != nil {
+		cancelGlobal()
+	}
 	if tp == nil {
 		return
 	}
@@ -281,50 +290,62 @@ func EndSpan(ctx context.Context, err error) {
 func watchConfigMap(clientset *kubernetes.Clientset) {
 	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
 	var tc config.CmTraceConfig
+	var watcher watch.Interface
+	var err error
+
+	configMapClient := clientset.CoreV1().ConfigMaps("")
+
+	// 使用defer确保资源被清理
+	defer watcher.Stop()
 
 	for {
-		configMapClient := clientset.CoreV1().ConfigMaps("")
-
-		watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
-		if err != nil {
-			fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
-
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
-				if err != nil {
-					fmt.Printf("[TelemetrySDK]error: %v", err)
-				}
-
-				fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
-
-				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
-			case watch.Modified:
-				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
-
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
-				if err != nil {
-					fmt.Printf("[TelemetrySDK]error: %v", err)
-				}
-
-				fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
-
-				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
-			case watch.Deleted:
-				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				UpdateTracerClient("false", "")
-			case watch.Error:
-				fmt.Printf("[TelemetrySDK]Watch has closed, attempting to reconnect...\n")
+		select {
+		case <-ctxGlobal.Done():
+			fmt.Println("[TelemetrySDK]Exit watch ConfigMaps")
+			return
+		default:
+			watcher, err = configMapClient.Watch(ctxGlobal, metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
+			if err != nil {
+				fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
 				time.Sleep(5 * time.Second)
-				break
+				continue
+			}
+
+			for {
+				event := <-watcher.ResultChan()
+				switch event.Type {
+				case watch.Added:
+					fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
+
+					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
+					if err != nil {
+						fmt.Printf("[TelemetrySDK]error: %v", err)
+					}
+
+					fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
+
+					UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
+				case watch.Modified:
+					fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
+
+					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
+					if err != nil {
+						fmt.Printf("[TelemetrySDK]error: %v", err)
+					}
+
+					fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
+
+					UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
+				case watch.Deleted:
+					fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
+					UpdateTracerClient("false", "")
+				case watch.Error:
+					fmt.Printf("[TelemetrySDK]Watch has closed, attempting to reconnect...\n")
+					watcher.Stop()
+					time.Sleep(5 * time.Second)
+					break
+				}
 			}
 		}
 	}
-
 }
