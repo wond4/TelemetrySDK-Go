@@ -1,3 +1,18 @@
 enabled: "true"
 level: "info"
 endpoint: ""
+exporters:
+  stdout:
+    enable: true
+  http:
+    enable: true
+    config:
+      endpoint:
+  protonmq:
+    enable: true
+    config:
+      subType: kafka
+      pubServer: "xxx"
+      pubPort: 111
+      subServer: "www"
+      subPort: 222

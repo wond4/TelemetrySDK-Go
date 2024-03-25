@@ -15,9 +15,53 @@ type YamlTraceConfig struct {
 
 // YamlLogConfig 程序日志记录器配置，结构体映射到YAML数据结构
 type YamlLogConfig struct {
-	Enabled  string `mapstructure:"enabled"`
-	Endpoint string `mapstructure:"endpoint"`
-	Level    string `mapstructure:"level"`
+	Enabled   string                               `mapstructure:"enabled"`
+	Endpoint  string                               `mapstructure:"endpoint"`
+	Exporters map[ExportersTyp]*ExportersTypConfig `mapstructure:"exporters"` //新的输出配置
+	Level     string                               `mapstructure:"level"`
+}
+
+type ExportersTypConfig struct {
+	Enable bool
+	Config ExportersConfig
+}
+
+type ExportersConfig struct {
+	FileOutputConfig     *FileOutputConfig
+	ConsoleOutputConfig  *ConsoleOutputConfig
+	HttpOutputConfig     *HttpOutputConfig
+	ProtonMqOutputConfig *ProtonMqOutputConfig
+}
+
+// http 导出配置
+type FileOutputConfig struct {
+	Path string
+}
+
+// http 导出配置
+type ConsoleOutputConfig struct {
+}
+
+// http 导出配置
+type HttpOutputConfig struct {
+	Endpoint string
+	From     string
+}
+
+// MQ导出配置
+type ProtonMqOutputConfig struct {
+	SubType   ExportersSubTyp //proton内置Mq类型
+	PubServer string          //发送地址
+	PubPort   int             //
+	SubServer string
+	SubPort   int
+	Topic     string //Topic
+	UserName  string
+	PassWord  string
+}
+
+func (subTyp ExportersSubTyp) String() string {
+	return string(subTyp)
 }
 
 var (

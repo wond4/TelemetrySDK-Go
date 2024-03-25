@@ -74,7 +74,12 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 // cfgName 配置文件名称，如配置类型为cm，则该参数为configmap的名称；如配置类型为yaml，则该参数为yaml文件的路径，比如./ob-app.yaml
 // serverName 微服务名称
 func InitLogger(cfgType string, cfgName string, serverName string) {
-	Logger = initARLogger("false", "", "", serverName)
+	logConfig := &config.YamlLogConfig{
+		Enabled:  "false",
+		Endpoint: "",
+		Level:    "",
+	}
+	Logger = initARLogger(logConfig, serverName)
 
 	if cfgType == "cm" { // 如果配置为configmap形式
 		// 监听configmap的内容，更新全局链路数据记录器的配置
@@ -86,11 +91,11 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 		config.CfgFileNameLog = cfgName
 		// 初始化配置
 		config.NewLogConfig()
-		Logger = initARLogger(config.YamlLogCfg.Enabled, config.YamlLogCfg.Endpoint, config.YamlLogCfg.Level, "")
+		Logger = initARLogger(config.YamlLogCfg, "")
 		config.LogVP.OnConfigChange(func(e fsnotify.Event) {
 			fmt.Printf("Log config file changed:%s, update logger\n", e)
 			config.LoadLogConfig()
-			Logger = initARLogger(config.YamlLogCfg.Enabled, config.YamlLogCfg.Endpoint, config.YamlLogCfg.Level, "")
+			Logger = initARLogger(config.YamlLogCfg, "")
 		})
 	}
 
@@ -132,7 +137,16 @@ func Fatal(ctx context.Context, msg string) {
 // logEndpoint 日志上报地址，为空则打印标准输出
 // logLevel 日志等级
 // ServerName 微服务名称
-func initARLogger(logEnabled string, logEndpoint string, logLevel string, serverName string) spanLog.Logger {
+func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Logger {
+	if logConfig == nil {
+		return nil
+	}
+
+	var (
+		logEnabled = logConfig.Enabled
+		logLevel   = logConfig.Level
+	)
+
 	serverInstance := os.Getenv("HOSTNAME")
 	if logEnabled != "true" {
 		logLevel = "off"
@@ -148,23 +162,16 @@ func initARLogger(logEnabled string, logEndpoint string, logLevel string, server
 	resource.SetServiceInstance(serverInstance)
 
 	var systemLogWriter open_standard.Writer
-	if logEndpoint == "" {
-		// 设置日志打印标准输出
-		systemLogExporter := exporter.GetRealTimeExporter()
-		systemLogWriter = open_standard.OpenTelemetryWriter(
-			encoder.NewJsonEncoderWithExporters(systemLogExporter),
-			resource.LogResource())
-	} else {
-		// 设置日志通过HTTP上报
-		systemLogClient := public.NewHTTPClient(public.WithAnyRobotURL(logEndpoint),
-			public.WithCompression(1),
-			public.WithTimeout(10*time.Second),
-			public.WithRetry(true, 5*time.Second, 20*time.Second, 1*time.Minute))
-		systemLogExporter := NewExporter(systemLogClient)
-		systemLogWriter = open_standard.OpenTelemetryWriter(
-			encoder.NewJsonEncoderWithExporters(systemLogExporter),
-			resource.LogResource())
+
+	//初始化
+	systemLogExporters := initExporters(logConfig)
+	if len(systemLogExporters) <= 0 {
+		ARLogger.Error(fmt.Sprintf("initARLogger 初始化initExporters数据有误，长度:%d", len(systemLogExporters)))
+		return nil
 	}
+	systemLogWriter = open_standard.OpenTelemetryWriter(
+		encoder.NewJsonEncoderWithExporters(systemLogExporters...),
+		resource.LogResource())
 
 	systemLogRunner := sdkRuntime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
 	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
@@ -249,7 +256,12 @@ func watchConfigMap(client *kubernetes.Clientset) {
 
 				fmt.Printf("[TelemetrySDK]Log Config Content: %+v\n", &lc)
 
-				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Endpoint, lc.Level, "")
+				logConfig := &config.YamlLogConfig{
+					Enabled:  config.GetLogEnabled(&lc),
+					Endpoint: lc.Endpoint,
+					Level:    lc.Level,
+				}
+				Logger = initARLogger(logConfig, "")
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
@@ -260,12 +272,109 @@ func watchConfigMap(client *kubernetes.Clientset) {
 
 				fmt.Printf("[TelemetrySDK]Log Config Content: %+v\n", &lc)
 
-				Logger = initARLogger(config.GetLogEnabled(&lc), lc.Endpoint, lc.Level, "")
+				logConfig := &config.YamlLogConfig{
+					Enabled:  config.GetLogEnabled(&lc),
+					Endpoint: lc.Endpoint,
+					Level:    lc.Level,
+				}
+				Logger = initARLogger(logConfig, "")
 			case watch.Deleted:
+				logConfig := &config.YamlLogConfig{
+					Enabled:  "false",
+					Endpoint: "",
+					Level:    "",
+				}
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				Logger = initARLogger("false", "", "", "")
+				Logger = initARLogger(logConfig, "")
 			}
 		}
 	}()
 
+}
+
+// initExportersFromEndpoint 兼容老版本endpont的配置
+func initExportersFromEndpoint(logConfig *config.YamlLogConfig) []exporter.LogExporter {
+	var (
+		systemLogExporters []exporter.LogExporter
+		logEndpoint        = logConfig.Endpoint
+	)
+	//老版本中 未配置endpoint 的表示输出到控制台，配置了endpoint表示输出到http
+	if logEndpoint == "" {
+		// 设置日志打印标准输出
+		systemLogExporters = append(systemLogExporters, exporter.GetRealTimeExporter())
+	} else {
+		systemLogClient := public.NewHTTPClient(public.WithAnyRobotURL(logEndpoint),
+			public.WithCompression(1),
+			public.WithTimeout(10*time.Second),
+			public.WithRetry(true, 5*time.Second, 20*time.Second, 1*time.Minute))
+
+		systemLogExporters = append(systemLogExporters, NewExporter(systemLogClient))
+	}
+	return systemLogExporters
+}
+
+// initExporters 初始化Exporters
+func initExporters(logConfig *config.YamlLogConfig) []exporter.LogExporter {
+	var systemLogExporters []exporter.LogExporter
+
+	//兼容老版本的配置
+	if len(logConfig.Exporters) <= 0 {
+		return initExportersFromEndpoint(logConfig)
+	}
+	//激活所有已启用的exporter
+	for typ, typConfig := range logConfig.Exporters {
+		var systemLogExporter exporter.LogExporter
+		if !typConfig.Enable { //未开启
+			continue
+		}
+		switch typ {
+		case config.File:
+			systemLogExporter = initFileExporter(logConfig)
+		case config.Console:
+			systemLogExporter = initConsoleExporter(logConfig)
+		case config.Http:
+			systemLogExporter = initHttpExporter(logConfig)
+		case config.Mq:
+			systemLogExporter = initProtonMqExporter(logConfig)
+		default:
+			Logger.Error(fmt.Sprintf("未知的exporter:%+v", typ))
+		}
+		if systemLogExporter == nil {
+			continue
+		}
+		systemLogExporters = append(systemLogExporters, systemLogExporter)
+	}
+	return systemLogExporters
+}
+
+// initHttpExportersClient 2024-03-25 最新版本的配置
+func initHttpExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
+	// 设置日志通过HTTP上报
+	var logEndpoint = logConfig.Exporters[config.Http].Config.HttpOutputConfig.Endpoint
+	systemLogClient := public.NewHTTPClient(public.WithAnyRobotURL(logEndpoint),
+		public.WithCompression(1),
+		public.WithTimeout(10*time.Second),
+		public.WithRetry(true, 5*time.Second, 20*time.Second, 1*time.Minute))
+	return NewExporter(systemLogClient)
+}
+
+// initProtonMqExporter 初始化protonmq输出
+func initProtonMqExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
+	systemLogClient := public.NewProtonMqClient(logConfig.Exporters[config.Mq])
+	return NewExporter(systemLogClient)
+}
+
+// initFileExporter 初始化文件输出
+func initFileExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
+	if logConfig == nil {
+		return nil
+	}
+	stdoutPath := logConfig.Exporters[config.File].Config.FileOutputConfig.Path
+	systemLogClient := public.NewFileClient(stdoutPath)
+	return NewExporter(systemLogClient)
+}
+
+// initConsoleExporter 初始化console输出
+func initConsoleExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
+	return exporter.GetRealTimeExporter()
 }
