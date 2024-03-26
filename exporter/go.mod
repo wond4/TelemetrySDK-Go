@@ -5,10 +5,12 @@ go 1.18
 require (
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.5
 	github.com/agiledragon/gomonkey/v2 v2.9.0
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.22.12
 	github.com/smartystreets/goconvey v1.8.0
 	github.com/spf13/viper v1.18.1
@@ -28,7 +30,6 @@ replace (
 )
 
 require (
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.5 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

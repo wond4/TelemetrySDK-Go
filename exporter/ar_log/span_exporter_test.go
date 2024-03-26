@@ -3,9 +3,6 @@ package ar_log
 import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"log"
 	"reflect"
 	"testing"
 
@@ -97,15 +94,20 @@ func TestLogExporterExportLogs(t *testing.T) {
 }
 
 func TestInitLogger(t *testing.T) {
-	file, err := ioutil.ReadFile("C:\\Users\\frank.liu01\\GolandProjects\\TelemetrySDK-Go\\examples\\api_service\\ob-app-config-log.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//file, err := ioutil.ReadFile("C:\\Users\\frank.liu01\\GolandProjects\\TelemetrySDK-Go\\examples\\api_service\\ob-app-config-log.yaml")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//var data = config.YamlLogConfig{}
+	//if err := yaml.Unmarshal(file, &data); err != nil {
+	//	t.Error(err)
+	//	return
+	//}
 
-	var data = config.YamlLogConfig{}
-	if err := yaml.Unmarshal(file, &data); err != nil {
-		t.Error(err)
-		return
-	}
+	config.CfgFileNameLog = "ob-app-config-log"
+	// 初始化配置
+	config.NewLogConfig()
+	config.LoadLogConfig()
 
 }

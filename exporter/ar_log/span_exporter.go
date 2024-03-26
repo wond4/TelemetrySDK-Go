@@ -317,40 +317,31 @@ func initExportersFromEndpoint(logConfig *config.YamlLogConfig) []exporter.LogEx
 func initExporters(logConfig *config.YamlLogConfig) []exporter.LogExporter {
 	var systemLogExporters []exporter.LogExporter
 
-	//兼容老版本的配置
-	if len(logConfig.Exporters) <= 0 {
+	//兼容老版本的配置，没有配置exporter表示是老的配置 继续走老的业务逻辑
+	if logConfig.Exporters == nil {
 		return initExportersFromEndpoint(logConfig)
 	}
 	//激活所有已启用的exporter
-	for typ, typConfig := range logConfig.Exporters {
-		var systemLogExporter exporter.LogExporter
-		if !typConfig.Enable { //未开启
-			continue
-		}
-		switch typ {
-		case config.File:
-			systemLogExporter = initFileExporter(logConfig)
-		case config.Console:
-			systemLogExporter = initConsoleExporter(logConfig)
-		case config.Http:
-			systemLogExporter = initHttpExporter(logConfig)
-		case config.Mq:
-			systemLogExporter = initProtonMqExporter(logConfig)
-		default:
-			Logger.Error(fmt.Sprintf("未知的exporter:%+v", typ))
-		}
-		if systemLogExporter == nil {
-			continue
-		}
-		systemLogExporters = append(systemLogExporters, systemLogExporter)
+	if logConfig.Exporters.FileExporters != nil && logConfig.Exporters.FileExporters.Enable {
+		systemLogExporters = append(systemLogExporters, initFileExporter(logConfig.Exporters.FileExporters))
 	}
+	if logConfig.Exporters.ConsoleExporter != nil && logConfig.Exporters.ConsoleExporter.Enable {
+		systemLogExporters = append(systemLogExporters, initConsoleExporter(logConfig.Exporters.ConsoleExporter))
+	}
+	if logConfig.Exporters.HttpExporters != nil && logConfig.Exporters.HttpExporters.Enable {
+		systemLogExporters = append(systemLogExporters, initHttpExporter(logConfig.Exporters.HttpExporters))
+	}
+	if logConfig.Exporters.ProtonMqExporters != nil && logConfig.Exporters.ProtonMqExporters.Enable {
+		systemLogExporters = append(systemLogExporters, initProtonMqExporter(logConfig.Exporters.ProtonMqExporters))
+	}
+
 	return systemLogExporters
 }
 
 // initHttpExportersClient 2024-03-25 最新版本的配置
-func initHttpExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
+func initHttpExporter(config *config.HttpExporterTyp) exporter.LogExporter {
 	// 设置日志通过HTTP上报
-	var logEndpoint = logConfig.Exporters[config.Http].Config.HttpOutputConfig.Endpoint
+	var logEndpoint = config.Config.Endpoint
 	systemLogClient := public.NewHTTPClient(public.WithAnyRobotURL(logEndpoint),
 		public.WithCompression(1),
 		public.WithTimeout(10*time.Second),
@@ -359,22 +350,22 @@ func initHttpExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
 }
 
 // initProtonMqExporter 初始化protonmq输出
-func initProtonMqExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
-	systemLogClient := public.NewProtonMqClient(logConfig.Exporters[config.Mq])
+func initProtonMqExporter(config *config.ProtonMqExporterTyp) exporter.LogExporter {
+	systemLogClient := public.NewProtonMqClient(config)
 	return NewExporter(systemLogClient)
 }
 
 // initFileExporter 初始化文件输出
-func initFileExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
-	if logConfig == nil {
+func initFileExporter(config *config.FileExporterTyp) exporter.LogExporter {
+	if config == nil {
 		return nil
 	}
-	stdoutPath := logConfig.Exporters[config.File].Config.FileOutputConfig.Path
+	stdoutPath := config.Config.Path
 	systemLogClient := public.NewFileClient(stdoutPath)
 	return NewExporter(systemLogClient)
 }
 
 // initConsoleExporter 初始化console输出
-func initConsoleExporter(logConfig *config.YamlLogConfig) exporter.LogExporter {
+func initConsoleExporter(config *config.ConsoleExporterTyp) exporter.LogExporter {
 	return exporter.GetRealTimeExporter()
 }

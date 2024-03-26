@@ -4,7 +4,7 @@ import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
-	"errors"
+	"github.com/pkg/errors"
 	"log"
 )
 
@@ -12,7 +12,7 @@ import (
 type ProtonMqClient struct {
 	stopCh chan struct{}
 	client msqclient.ProtonMQClient
-	cfg    *config.ProtonMqOutputConfig
+	cfg    *config.ProtonMqExporterTyp
 }
 
 // Path 获取上报地址。
@@ -43,10 +43,10 @@ func (c *ProtonMqClient) UploadData(ctx context.Context, data []byte) error {
 
 	}
 	var (
-		topic = c.cfg.Topic
+		topic = c.cfg.Config.Topic
 	)
 	if len(topic) == 0 {
-		return errors.New("")
+		return errors.New("未配置正确的Topic")
 	}
 
 	if err := c.client.Pub(topic, data); err != nil {
@@ -56,11 +56,11 @@ func (c *ProtonMqClient) UploadData(ctx context.Context, data []byte) error {
 }
 
 // NewProtonMqClient 创建Exporter的控制台+本地文件发送客户端。
-func NewProtonMqClient(exportersTypConfig *config.ExportersTypConfig) Client {
-	if exportersTypConfig == nil || exportersTypConfig.Config.ProtonMqOutputConfig == nil {
+func NewProtonMqClient(config *config.ProtonMqExporterTyp) Client {
+	if config == nil {
 		return nil
 	}
-	var protonMqOutputConfig = exportersTypConfig.Config.ProtonMqOutputConfig
+	var protonMqOutputConfig = config.Config
 	var (
 		username  = protonMqOutputConfig.UserName
 		password  = protonMqOutputConfig.PassWord
@@ -79,5 +79,5 @@ func NewProtonMqClient(exportersTypConfig *config.ExportersTypConfig) Client {
 		log.Fatal("failed to create a proton mq client:", err)
 		return nil
 	}
-	return &ProtonMqClient{client: client, cfg: protonMqOutputConfig}
+	return &ProtonMqClient{cfg: config, client: client}
 }

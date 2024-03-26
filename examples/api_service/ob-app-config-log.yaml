@@ -1,18 +1,29 @@
 enabled: "true"
 level: "info"
 endpoint: ""
+
+# exporters：用于配置log数据输出到哪里
+# 可以选择console,file,http,protonMq 分别输出到控制台、文件、feeder、mq中
+# protonMq.config.subType 可以选择使用哪种MQ，可以选择的MQ范围为nsq、tonglink、bmq、kafka、htp20
 exporters:
-  stdout:
+  console:
     enable: true
-  http:
+  file:
     enable: true
     config:
-      endpoint:
-  protonmq:
+      path: /tmp/file.name
+  http:
+    enable: false
+    config:
+      endpoint: feederEndpoint
+  protonMq:
     enable: true
     config:
       subType: kafka
-      pubServer: "xxx"
-      pubPort: 111
-      subServer: "www"
-      subPort: 222
+      pubServer: "127.0.0.1"
+      pubPort: 123
+      subServer: "127.0.0.1"
+      subPort: 456
+      topic: topicName
+      userName: aishu
+      passWord: aishu123

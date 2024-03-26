@@ -15,49 +15,55 @@ type YamlTraceConfig struct {
 
 // YamlLogConfig 程序日志记录器配置，结构体映射到YAML数据结构
 type YamlLogConfig struct {
-	Enabled   string                               `mapstructure:"enabled"`
-	Endpoint  string                               `mapstructure:"endpoint"`
-	Exporters map[ExportersTyp]*ExportersTypConfig `mapstructure:"exporters"` //新的输出配置
-	Level     string                               `mapstructure:"level"`
+	Enabled   string              `mapstructure:"enabled"`
+	Endpoint  string              `mapstructure:"endpoint"`
+	Exporters *ExportersTypConfig `mapstructure:"exporters"` //新的输出配置
+	Level     string              `mapstructure:"level"`
 }
 
 type ExportersTypConfig struct {
-	Enable bool
-	Config ExportersConfig
+	FileExporters     *FileExporterTyp     `mapstructure:"file" yaml:"file"  `
+	ConsoleExporter   *ConsoleExporterTyp  `mapstructure:"console" yaml:"console"`
+	HttpExporters     *HttpExporterTyp     `mapstructure:"http" yaml:"http"`
+	ProtonMqExporters *ProtonMqExporterTyp `mapstructure:"protonMq" yaml:"protonMq"`
 }
 
-type ExportersConfig struct {
-	FileOutputConfig     *FileOutputConfig
-	ConsoleOutputConfig  *ConsoleOutputConfig
-	HttpOutputConfig     *HttpOutputConfig
-	ProtonMqOutputConfig *ProtonMqOutputConfig
+// ExportersFileTyp
+type FileExporterConfig struct {
+	Path string `mapstructure:"path" yaml:"path"`
+}
+type FileExporterTyp struct {
+	Enable bool               `mapstructure:"enable" yaml:"enable"`
+	Config FileExporterConfig `mapstructure:"config" yaml:"config"`
 }
 
-// http 导出配置
-type FileOutputConfig struct {
-	Path string
+type ConsoleExporterTyp struct {
+	Enable bool `mapstructure:"enable" yaml:"enable"`
 }
 
-// http 导出配置
-type ConsoleOutputConfig struct {
+// HttpExportersConfig
+type HttpExporterConfig struct {
+	Endpoint string `mapstructure:"endpoint" yaml:"endpoint"`
+}
+type HttpExporterTyp struct {
+	Enable bool               `mapstructure:"enable" yaml:"enable"`
+	Config HttpExporterConfig `mapstructure:"config" yaml:"config"`
 }
 
-// http 导出配置
-type HttpOutputConfig struct {
-	Endpoint string
-	From     string
+// ProtonmqExportersConfig
+type ProtonmqExporterConfig struct {
+	SubType   ExportersSubTyp `mapstructure:"subType" yaml:"subType"`
+	PubServer string          `mapstructure:"pubServer" yaml:"pubServer"`
+	PubPort   int             `mapstructure:"pubPort" yaml:"pubPort"`
+	SubServer string          `mapstructure:"subServer" yaml:"subServer"`
+	SubPort   int             `mapstructure:"subPort" yaml:"subPort"`
+	Topic     string          `mapstructure:"topic" yaml:"topic"` //Topic
+	UserName  string          `mapstructure:"userName" yaml:"userName"`
+	PassWord  string          `mapstructure:"passWord" yaml:"passWord"`
 }
-
-// MQ导出配置
-type ProtonMqOutputConfig struct {
-	SubType   ExportersSubTyp //proton内置Mq类型
-	PubServer string          //发送地址
-	PubPort   int             //
-	SubServer string
-	SubPort   int
-	Topic     string //Topic
-	UserName  string
-	PassWord  string
+type ProtonMqExporterTyp struct {
+	Enable bool                   `mapstructure:"enable" yaml:"enable"`
+	Config ProtonmqExporterConfig `mapstructure:"config" yaml:"config"`
 }
 
 func (subTyp ExportersSubTyp) String() string {
