@@ -26,7 +26,7 @@ type ExportersTypConfig struct {
 	FileExporters     *FileExporterTyp     `mapstructure:"file" yaml:"file"  `
 	ConsoleExporter   *ConsoleExporterTyp  `mapstructure:"console" yaml:"console"`
 	HttpExporters     *HttpExporterTyp     `mapstructure:"http" yaml:"http"`
-	ProtonMqExporters *ProtonMqExporterTyp `mapstructure:"protonMq" yaml:"protonMq"`
+	ProtonMqExporters *ProtonMqExporterTyp `mapstructure:"proton_mq" yaml:"proton_mq"`
 }
 
 // ExportersFileTyp
@@ -53,14 +53,14 @@ type HttpExporterTyp struct {
 
 // ProtonmqExportersConfig
 type ProtonmqExporterConfig struct {
-	SubType   ExportersSubTyp `mapstructure:"subType" yaml:"subType"`
-	PubServer string          `mapstructure:"pubServer" yaml:"pubServer"`
-	PubPort   int             `mapstructure:"pubPort" yaml:"pubPort"`
-	SubServer string          `mapstructure:"subServer" yaml:"subServer"`
-	SubPort   int             `mapstructure:"subPort" yaml:"subPort"`
+	SubType   ExportersSubTyp `mapstructure:"sub_type" yaml:"sub_type"`
+	PubServer string          `mapstructure:"pub_server" yaml:"pub_server"`
+	PubPort   int             `mapstructure:"pub_port" yaml:"pub_port"`
+	SubServer string          `mapstructure:"sub_server" yaml:"sub_server"`
+	SubPort   int             `mapstructure:"sub_port" yaml:"sub_port"`
 	Topic     string          `mapstructure:"topic" yaml:"topic"` //Topic
-	UserName  string          `mapstructure:"userName" yaml:"userName"`
-	PassWord  string          `mapstructure:"passWord" yaml:"passWord"`
+	UserName  string          `mapstructure:"user_name" yaml:"user_name"`
+	PassWord  string          `mapstructure:"pass_word" yaml:"pass_word"`
 }
 type ProtonMqExporterTyp struct {
 	Enable bool                   `mapstructure:"enable" yaml:"enable"`

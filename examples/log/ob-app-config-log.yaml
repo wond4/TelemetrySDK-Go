@@ -16,14 +16,14 @@ exporters:
     enable: false
     config:
       endpoint: feederEndpoint
-  protonMq:
+  proton_mq:
     enable: true
     config:
-      subType: kafka
-      pubServer: "10.4.110.244"
-      pubPort: 31000
+      sub_type: kafka
+      pub_server: "10.4.110.244"
+      pub_port: 31000
       # subServer: "31000"
       # subPort: 456
       topic: proton-test
-      userName: anyrobot
-      passWord: eisoo.com123
+      user_name: anyrobot
+      pass_word: eisoo.com123
