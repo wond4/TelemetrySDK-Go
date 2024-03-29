@@ -4,7 +4,7 @@ endpoint: ""
 
 # exporters：用于配置log数据输出到哪里
 # 可以选择console,file,http,protonMq 分别输出到控制台、文件、feeder、mq中
-# protonMq.config.subType 可以选择使用哪种MQ，可以选择的MQ范围为nsq、tonglink、bmq、kafka、htp20
+# protonMq.config.sub_type 可以选择使用哪种MQ，目前可以选择的MQ范围为kafka
 exporters:
   console:
     enable: false
@@ -25,5 +25,5 @@ exporters:
       # subServer: "31000"
       # subPort: 456
       topic: proton-test
-      user_name: anyrobot
-      pass_word: eisoo.com123
+      username: anyrobot
+      password: eisoo.com123

@@ -37,9 +37,7 @@ func TestNewProtonMqClient(t *testing.T) {
 
 	if err := client.Pub("proton-test", []byte(msg)); err != nil {
 		t.Error(err)
-
 		return
-
 	}
 	t.Log("done")
 }

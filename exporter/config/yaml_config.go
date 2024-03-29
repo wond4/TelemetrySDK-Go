@@ -59,8 +59,8 @@ type ProtonmqExporterConfig struct {
 	SubServer string          `mapstructure:"sub_server" yaml:"sub_server"`
 	SubPort   int             `mapstructure:"sub_port" yaml:"sub_port"`
 	Topic     string          `mapstructure:"topic" yaml:"topic"` //Topic
-	UserName  string          `mapstructure:"user_name" yaml:"user_name"`
-	PassWord  string          `mapstructure:"pass_word" yaml:"pass_word"`
+	UserName  string          `mapstructure:"username" yaml:"username"`
+	PassWord  string          `mapstructure:"password" yaml:"password"`
 }
 type ProtonMqExporterTyp struct {
 	Enable bool                   `mapstructure:"enable" yaml:"enable"`
