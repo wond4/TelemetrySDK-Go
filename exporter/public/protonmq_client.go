@@ -3,6 +3,7 @@ package public
 import (
 	"context"
 
+	"devops.aishu.cn/AISHUDevOps/AnyRobot/_git/DE_IngestPkg/pkg/cipters"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
 	"github.com/pkg/errors"
@@ -84,6 +85,15 @@ func initProtonMqClient(config *config.ProtonMqExporterTyp) (msqclient.ProtonMQC
 		subServer = protonMqOutputConfig.SubServer
 		subPort   = protonMqOutputConfig.SubPort
 	)
+
+	if user := cipters.DecryptPassword(username); user != "" {
+		username = user
+	}
+
+	if passwd := cipters.DecryptPassword(password); passwd != "" {
+		password = passwd
+	}
+
 	opts := []msqclient.ClientOpt{
 		msqclient.UserInfo(username, password),
 		msqclient.AuthMechanism("PLAIN"),
