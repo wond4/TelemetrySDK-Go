@@ -3,3 +3,5 @@
 *.html
 *.txt
 **/.idea/**
+./expoter/main
+./examples/main
