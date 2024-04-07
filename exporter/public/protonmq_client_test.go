@@ -13,16 +13,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	config := &config.ProtonMqExporterTyp{
-		Enable: true,
-		Config: config.ProtonmqExporterConfig{
-			SubType:   config.ProtonMqKafka,
-			PubServer: "10.4.110.244",
-			PubPort:   31000,
-			Topic:     "opentelemetry.log",
-			UserName:  "pEe/1ToFSNVkbnEJ6RYnGw==",
-			PassWord:  "0wyMl36ec8LNe2Cqv9oq+g==",
-		},
+	config := ProtonMqConfig{
+		SubType:    config.ProtonMqKafka,
+		BrokerIp:   "10.4.110.244",
+		BrokerPort: 31000,
+		Topic:      "opentelemetry.log",
+		UserName:   "pEe/1ToFSNVkbnEJ6RYnGw==",
+		PassWord:   "0wyMl36ec8LNe2Cqv9oq+g==",
 	}
 	client, err = initProtonMqClient(config)
 	if err != nil {
@@ -40,4 +37,10 @@ func TestNewProtonMqClient(t *testing.T) {
 		return
 	}
 	t.Log("done")
+}
+
+func Test_randomSlice(t *testing.T) {
+	slice := []string{"aaa", "bbb", "ccc"}
+	r := randomSlice(slice)
+	t.Log(r)
 }

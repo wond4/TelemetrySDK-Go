@@ -3,6 +3,7 @@ package ar_log
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -294,10 +295,10 @@ func watchConfigMap(client *kubernetes.Clientset) {
 }
 
 // initExportersFromEndpoint 兼容老版本endpont的配置
-func initExportersFromEndpoint(logConfig *config.YamlLogConfig) []exporter.LogExporter {
+func initExportersFromEndpoint(logConfig *config.YamlLogConfig, systemLogExporters []exporter.LogExporter) []exporter.LogExporter {
 	var (
-		systemLogExporters []exporter.LogExporter
-		logEndpoint        = logConfig.Endpoint
+		//systemLogExporters []exporter.LogExporter
+		logEndpoint = logConfig.Endpoint
 	)
 	//老版本中 未配置endpoint 的表示输出到控制台，配置了endpoint表示输出到http
 	if logEndpoint == "" {
@@ -316,11 +317,13 @@ func initExportersFromEndpoint(logConfig *config.YamlLogConfig) []exporter.LogEx
 
 // initExporters 初始化Exporters
 func initExporters(logConfig *config.YamlLogConfig) []exporter.LogExporter {
+	//初始化默认silent
 	var systemLogExporters []exporter.LogExporter
+	systemLogExporters = append(systemLogExporters, NewExporter(public.NewSilentClient()))
 
 	//兼容老版本的配置，没有配置exporter表示是老的配置 继续走老的业务逻辑
 	if logConfig.Exporters == nil {
-		return initExportersFromEndpoint(logConfig)
+		return initExportersFromEndpoint(logConfig, systemLogExporters)
 	}
 	//激活所有已启用的exporter
 	if logConfig.Exporters.FileExporters != nil && logConfig.Exporters.FileExporters.Enable {
@@ -352,7 +355,10 @@ func initHttpExporter(config *config.HttpExporterTyp) exporter.LogExporter {
 
 // initProtonMqExporter 初始化protonmq输出
 func initProtonMqExporter(config *config.ProtonMqExporterTyp) exporter.LogExporter {
-	systemLogClient := public.NewProtonMqClient(config)
+	systemLogClient, err := public.NewProtonMqClient(config)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
 	return NewExporter(systemLogClient)
 }
 

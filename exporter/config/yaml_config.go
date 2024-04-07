@@ -53,14 +53,11 @@ type HttpExporterTyp struct {
 
 // ProtonmqExportersConfig
 type ProtonmqExporterConfig struct {
-	SubType   ExportersSubTyp `mapstructure:"sub_type" yaml:"sub_type"`
-	PubServer string          `mapstructure:"pub_server" yaml:"pub_server"`
-	PubPort   int             `mapstructure:"pub_port" yaml:"pub_port"`
-	SubServer string          `mapstructure:"sub_server" yaml:"sub_server"`
-	SubPort   int             `mapstructure:"sub_port" yaml:"sub_port"`
-	Topic     string          `mapstructure:"topic" yaml:"topic"` //Topic
-	UserName  string          `mapstructure:"username" yaml:"username"`
-	PassWord  string          `mapstructure:"password" yaml:"password"`
+	SubType    ExportersSubTyp `mapstructure:"sub_type" yaml:"sub_type"`
+	BrokerList []string        `mapstructure:"broker_list" yaml:"broker_list"`
+	Topic      string          `mapstructure:"topic" yaml:"topic"` //Topic
+	UserName   string          `mapstructure:"username" yaml:"username"`
+	PassWord   string          `mapstructure:"password" yaml:"password"`
 }
 type ProtonMqExporterTyp struct {
 	Enable bool                   `mapstructure:"enable" yaml:"enable"`
