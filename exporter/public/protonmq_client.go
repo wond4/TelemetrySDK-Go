@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/AnyRobot/_git/DE_IngestPkg/pkg/cipters"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/cipters"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
 	"github.com/pkg/errors"
@@ -113,13 +113,20 @@ func NewProtonMqClient(config *config.ProtonMqExporterTyp) (Client, error) {
 	}
 
 	//如果存在用户名密码 那么加入 验证
+	//如果存在用户名密码 那么加入 验证
 	if len(username) > 0 || len(password) > 0 {
-		if user := cipters.DecryptPassword(username); user != "" {
-			username = user
+		user, err := cipters.RsaDecryptBase64(username)
+		if err != nil {
+			return nil, errors.Wrap(err, "RsaDecryptBase64 username")
 		}
-		if passwd := cipters.DecryptPassword(password); passwd != "" {
-			password = passwd
+		username = user
+
+		passwd, err := cipters.RsaDecryptBase64(password)
+		if err != nil {
+			return nil, errors.Wrap(err, "RsaDecryptBase64 password")
 		}
+		password = passwd
+
 		opts = []msqclient.ClientOpt{
 			msqclient.UserInfo(username, password),
 			msqclient.AuthMechanism("PLAIN"),
