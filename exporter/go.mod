@@ -3,7 +3,6 @@ module devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exp
 go 1.18
 
 require (
-	devops.aishu.cn/AISHUDevOps/AnyRobot/_git/DE_IngestPkg v0.0.8
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.5
@@ -31,8 +30,6 @@ replace (
 )
 
 require (
-	devops.aishu.cn/AISHUDevOps/AnyRobot/_git/DE_go-lib v0.0.11 // indirect
-	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
@@ -76,11 +73,11 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nsqio/go-nsq v1.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.0 // indirect
-	github.com/opensearch-project/opensearch-go v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/segmentio/kafka-go v0.4.39 // indirect
