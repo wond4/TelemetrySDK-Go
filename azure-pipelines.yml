@@ -56,7 +56,6 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
-                      -v /root/.ssh/id_rsa:/root/.ssh/id_rsa \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -241,7 +240,6 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
-                      -v /root/.ssh/id_rsa:/root/.ssh/id_rsa \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -426,7 +424,6 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
-                      -v /root/.ssh/id_rsa:/root/.ssh/id_rsa \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
