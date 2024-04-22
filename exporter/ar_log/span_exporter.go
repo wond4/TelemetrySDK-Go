@@ -2,6 +2,7 @@ package ar_log
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -256,12 +257,14 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				fmt.Printf("[TelemetrySDK]Log Config Content: %+v\n", &lc)
+				by, _ := json.Marshal(&lc)
+				fmt.Printf("[TelemetrySDK]Log Config Content: %s\n", string(by))
 
 				logConfig := &config.YamlLogConfig{
-					Enabled:  config.GetLogEnabled(&lc),
-					Endpoint: lc.Endpoint,
-					Level:    lc.Level,
+					Enabled:   config.GetLogEnabled(&lc),
+					Endpoint:  lc.Endpoint,
+					Level:     lc.Level,
+					Exporters: lc.Exporters,
 				}
 				Logger = initARLogger(logConfig, "")
 			case watch.Modified:
@@ -272,19 +275,22 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					fmt.Printf("[TelemetrySDK]error: %v", err)
 				}
 
-				fmt.Printf("[TelemetrySDK]Log Config Content: %+v\n", &lc)
+				by, _ := json.Marshal(&lc)
+				fmt.Printf("[TelemetrySDK]Log Config Content: %s\n", string(by))
 
 				logConfig := &config.YamlLogConfig{
-					Enabled:  config.GetLogEnabled(&lc),
-					Endpoint: lc.Endpoint,
-					Level:    lc.Level,
+					Enabled:   config.GetLogEnabled(&lc),
+					Endpoint:  lc.Endpoint,
+					Level:     lc.Level,
+					Exporters: lc.Exporters,
 				}
 				Logger = initARLogger(logConfig, "")
 			case watch.Deleted:
 				logConfig := &config.YamlLogConfig{
-					Enabled:  "false",
-					Endpoint: "",
-					Level:    "",
+					Enabled:   "false",
+					Endpoint:  "",
+					Level:     "",
+					Exporters: &config.ExportersTypConfig{},
 				}
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
 				Logger = initARLogger(logConfig, "")

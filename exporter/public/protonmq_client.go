@@ -94,6 +94,9 @@ func NewProtonMqClient(config *config.ProtonMqExporterTyp) (Client, error) {
 		password             = protonMqOutputConfig.PassWord
 		brokerList           = protonMqOutputConfig.BrokerList
 	)
+	if len(brokerList) <= 0 {
+		return nil, errors.New("brokerList 为空")
+	}
 	//broker处理
 	randomBroker := randomSlice(brokerList)
 	brokerInfos := strings.Split(randomBroker, ":") //随机取出一个broker
@@ -165,6 +168,9 @@ func initProtonMqClient(config ProtonMqConfig) (msqclient.ProtonMQClient, error)
 
 // randomSlice 随机获取一个slice
 func randomSlice(slice []string) string {
+	if len(slice) < 0 {
+		return ""
+	}
 	rand.New(rand.NewSource(time.Now().Unix()))
 	// 随机获取数组元素
 	randomIndex := rand.Intn(len(slice))
