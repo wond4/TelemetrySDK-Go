@@ -3,6 +3,7 @@ package ar_log
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -232,6 +233,23 @@ func InitBusinessLogger() spanLog.Logger {
 
 	businessLogger.Info("AnyRobot BLogger init success")
 	return businessLogger
+}
+
+// loadConfigMapData 从configMap中获取配置数据
+func loadConfigMapData(cs kubernetes.Interface, nameSpace, configMapName, configMapKey string) (string, error) {
+	if len(nameSpace) < 0 || len(configMapName) < 0 || len(configMapKey) < 0 {
+		return "", errors.New("nameSpace or configMapName or configMapKey is empty")
+	}
+
+	configMap, err := cs.CoreV1().ConfigMaps(nameSpace).Get(context.Background(), config.CmName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	configMapData, has := configMap.Data[config.CmMapKeyLog]
+	if !has {
+		return "", errors.New(fmt.Sprintf("从命名空间:%s获取configMapName:%s,其中 %s key不存在", nameSpace, configMapName, configMapKey))
+	}
+	return configMapData, nil
 }
 
 func watchConfigMap(client *kubernetes.Clientset) {

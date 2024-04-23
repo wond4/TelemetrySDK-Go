@@ -3,10 +3,14 @@ package ar_log
 import (
 	"context"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
+	. "github.com/smartystreets/goconvey/convey"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"testing"
 
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestNewExporter(t *testing.T) {
@@ -110,4 +114,28 @@ func TestInitLogger(t *testing.T) {
 	config.NewLogConfig()
 	config.LoadLogConfig()
 
+}
+
+func Test_loadConfigMapData(t *testing.T) {
+
+	Convey("测试加载configMap", t, func() {
+		var nameSpace = "default"
+		var ctx = context.Background()
+		client := fake.NewSimpleClientset()
+		client.CoreV1().ConfigMaps(nameSpace).Create(ctx, &v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "cmConfig",
+			},
+			Data: map[string]string{
+				"ob": "xxx",
+			},
+		}, metav1.CreateOptions{})
+
+		Convey("正常加载", func() {
+			www, err := loadConfigMapData(client, nameSpace, "cmConfig", "ob")
+			So(err, ShouldBeNil)
+			So(www, ShouldEqual, "xxx")
+		})
+
+	})
 }
