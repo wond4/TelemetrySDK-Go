@@ -78,19 +78,16 @@ func NewSyncExporter(c public.SyncClient) *syncExporter {
 // cfgName 配置文件名称，如配置类型为cm，则该参数为configmap的名称；如配置类型为yaml，则该参数为yaml文件的路径，比如./ob-app.yaml
 // serverName 微服务名称
 func InitLogger(cfgType string, cfgName string, serverName string) {
-	logConfig := &config.YamlLogConfig{
-		Enabled:  "false",
-		Endpoint: "",
-		Level:    "",
-	}
-	Logger = initARLogger(logConfig, serverName)
 
 	if cfgType == "cm" { // 如果配置为configmap形式
 		// 监听configmap的内容，更新全局链路数据记录器的配置
 		config.CmName = cfgName
-		if kubeClient := config.InitKubeClient(); kubeClient != nil {
+		kubeClient := config.InitKubeClient()
+		if kubeClient != nil {
 			watchConfigMap(kubeClient)
 		}
+		//初始化Logger
+		Logger = initLoggerFromConfigMap(context.Background(), kubeClient, "default", cfgName, config.CmMapKeyLog, serverName)
 	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
 		config.CfgFileNameLog = cfgName
 		// 初始化配置
@@ -103,6 +100,30 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 		})
 	}
 
+}
+
+// initLoggerFromConfigMap 从configMap中加载配置信息
+func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, nameSpace string, cfgName, configMapKey, serverName string) spanLog.Logger {
+	var (
+		logConfig = &config.YamlLogConfig{Enabled: "false", Exporters: &config.ExportersTypConfig{}}
+		lc        = config.CmLogConfig{Exporters: &config.ExportersTypConfig{}}
+	)
+	//加载配置
+	data, err := loadConfigMapData(ctx, client, nameSpace, cfgName, configMapKey)
+	if err != nil {
+		fmt.Printf("[TelemetrySDK] initLoggerFromConfigMap loadConfigMapData error: %v", err)
+	}
+
+	if err = yaml.Unmarshal([]byte(data), &lc); err != nil {
+		fmt.Printf("[TelemetrySDK] initLoggerFromConfigMap Unmarshal error: %v", err)
+	}
+
+	logConfig.Enabled = config.GetLogEnabled(&lc)
+	logConfig.Endpoint = lc.Endpoint
+	logConfig.Level = lc.Level
+	logConfig.Exporters = lc.Exporters
+
+	return initARLogger(logConfig, serverName)
 }
 
 // Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
@@ -236,18 +257,18 @@ func InitBusinessLogger() spanLog.Logger {
 }
 
 // loadConfigMapData 从configMap中获取配置数据
-func loadConfigMapData(cs kubernetes.Interface, nameSpace, configMapName, configMapKey string) (string, error) {
-	if len(nameSpace) < 0 || len(configMapName) < 0 || len(configMapKey) < 0 {
+func loadConfigMapData(ctx context.Context, cs kubernetes.Interface, nameSpace, configMapName, configMapKey string) (string, error) {
+	if len(nameSpace) <= 0 || len(configMapName) <= 0 || len(configMapKey) <= 0 {
 		return "", errors.New("nameSpace or configMapName or configMapKey is empty")
 	}
 
-	configMap, err := cs.CoreV1().ConfigMaps(nameSpace).Get(context.Background(), config.CmName, metav1.GetOptions{})
+	configMap, err := cs.CoreV1().ConfigMaps(nameSpace).Get(ctx, configMapName, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
-	configMapData, has := configMap.Data[config.CmMapKeyLog]
+	configMapData, has := configMap.Data[configMapKey]
 	if !has {
-		return "", errors.New(fmt.Sprintf("从命名空间:%s获取configMapName:%s,其中 %s key不存在", nameSpace, configMapName, configMapKey))
+		return "", fmt.Errorf("从命名空间:%s 获取configMapName:%s,其中 %s key不存在", nameSpace, configMapName, configMapKey)
 	}
 	return configMapData, nil
 }

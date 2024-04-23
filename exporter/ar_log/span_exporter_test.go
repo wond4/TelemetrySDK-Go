@@ -2,12 +2,13 @@ package ar_log
 
 import (
 	"context"
+	"reflect"
+	"testing"
+
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	. "github.com/smartystreets/goconvey/convey"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"reflect"
-	"testing"
 
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"k8s.io/client-go/kubernetes/fake"
@@ -119,8 +120,10 @@ func TestInitLogger(t *testing.T) {
 func Test_loadConfigMapData(t *testing.T) {
 
 	Convey("测试加载configMap", t, func() {
-		var nameSpace = "default"
-		var ctx = context.Background()
+		var (
+			nameSpace = "default"
+			ctx       = context.Background()
+		)
 		client := fake.NewSimpleClientset()
 		client.CoreV1().ConfigMaps(nameSpace).Create(ctx, &v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -132,9 +135,19 @@ func Test_loadConfigMapData(t *testing.T) {
 		}, metav1.CreateOptions{})
 
 		Convey("正常加载", func() {
-			www, err := loadConfigMapData(client, nameSpace, "cmConfig", "ob")
+			value, err := loadConfigMapData(ctx, client, nameSpace, "cmConfig", "ob")
 			So(err, ShouldBeNil)
-			So(www, ShouldEqual, "xxx")
+			So(value, ShouldEqual, "xxx")
+		})
+
+		Convey("异常configMap", func() {
+			_, err := loadConfigMapData(ctx, client, nameSpace, "xxx", "xxx")
+			So(err, ShouldBeError)
+		})
+
+		Convey("异常key", func() {
+			_, err := loadConfigMapData(ctx, client, nameSpace, "cmConfig", "xxx")
+			So(err, ShouldBeError)
 		})
 
 	})
