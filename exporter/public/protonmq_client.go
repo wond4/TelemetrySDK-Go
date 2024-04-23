@@ -168,7 +168,7 @@ func initProtonMqClient(config ProtonMqConfig) (msqclient.ProtonMQClient, error)
 
 // randomSlice 随机获取一个slice
 func randomSlice(slice []string) string {
-	if len(slice) < 0 {
+	if len(slice) <= 0 {
 		return ""
 	}
 	rand.New(rand.NewSource(time.Now().Unix()))

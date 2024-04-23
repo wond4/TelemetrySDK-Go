@@ -125,7 +125,7 @@ func Test_loadConfigMapData(t *testing.T) {
 			ctx       = context.Background()
 		)
 		client := fake.NewSimpleClientset()
-		client.CoreV1().ConfigMaps(nameSpace).Create(ctx, &v1.ConfigMap{
+		_, _ = client.CoreV1().ConfigMaps(nameSpace).Create(ctx, &v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "cmConfig",
 			},
