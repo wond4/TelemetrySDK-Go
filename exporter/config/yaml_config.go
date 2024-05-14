@@ -3,8 +3,9 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 // YamlTraceConfig 链路数据记录器配置，结构体映射到YAML数据结构
@@ -15,9 +16,56 @@ type YamlTraceConfig struct {
 
 // YamlLogConfig 程序日志记录器配置，结构体映射到YAML数据结构
 type YamlLogConfig struct {
-	Enabled  string `mapstructure:"enabled"`
-	Endpoint string `mapstructure:"endpoint"`
-	Level    string `mapstructure:"level"`
+	Enabled   string              `mapstructure:"enabled"`
+	Endpoint  string              `mapstructure:"endpoint"`
+	Exporters *ExportersTypConfig `mapstructure:"exporters"` //新的输出配置
+	Level     string              `mapstructure:"level"`
+}
+
+type ExportersTypConfig struct {
+	FileExporters     *FileExporterTyp     `mapstructure:"file" yaml:"file"  `
+	ConsoleExporter   *ConsoleExporterTyp  `mapstructure:"console" yaml:"console"`
+	HttpExporters     *HttpExporterTyp     `mapstructure:"http" yaml:"http"`
+	ProtonMqExporters *ProtonMqExporterTyp `mapstructure:"proton_mq" yaml:"proton_mq"`
+}
+
+// ExportersFileTyp
+type FileExporterConfig struct {
+	Path string `mapstructure:"path" yaml:"path"`
+}
+type FileExporterTyp struct {
+	Enable bool               `mapstructure:"enable" yaml:"enable"`
+	Config FileExporterConfig `mapstructure:"config" yaml:"config"`
+}
+
+type ConsoleExporterTyp struct {
+	Enable bool `mapstructure:"enable" yaml:"enable"`
+}
+
+// HttpExportersConfig
+type HttpExporterConfig struct {
+	Endpoint string `mapstructure:"endpoint" yaml:"endpoint"`
+}
+type HttpExporterTyp struct {
+	Enable bool               `mapstructure:"enable" yaml:"enable"`
+	Config HttpExporterConfig `mapstructure:"config" yaml:"config"`
+}
+
+// ProtonmqExportersConfig
+type ProtonmqExporterConfig struct {
+	SubType    ExportersSubTyp `mapstructure:"sub_type" yaml:"sub_type"`
+	BrokerList []string        `mapstructure:"broker_list" yaml:"broker_list"`
+	Topic      string          `mapstructure:"topic" yaml:"topic"` //Topic
+	UserName   string          `mapstructure:"username" yaml:"username"`
+	PassWord   string          `mapstructure:"password" yaml:"password"`
+}
+type ProtonMqExporterTyp struct {
+	Enable bool                   `mapstructure:"enable" yaml:"enable"`
+	Config ProtonmqExporterConfig `mapstructure:"config" yaml:"config"`
+}
+
+func (subTyp ExportersSubTyp) String() string {
+	return string(subTyp)
 }
 
 var (

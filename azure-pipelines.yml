@@ -13,7 +13,8 @@ trigger:
 variables:
   - group: anyrobot-global-config
   - name: BUILD_IMAGE
-    value: "acr.aishu.cn/ar/go.build:1.20.11-20231109"
+#    value: "acr.aishu.cn/ar/go.build:1.20.11-20231109"
+    value: "acr.aishu.cn/public/golang:1.20.14-ubuntu22.04.20231012-2"
   - name: SONARQUBE_IMAGE
     value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:4.7"
   - name: LintReportName # 此行保持一致
@@ -55,7 +56,6 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
-                      -v /root/.ssh/id_rsa:/root/.ssh/id_rsa \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -66,7 +66,7 @@ stages:
                   go test -gcflags=all=-l -v -coverprofile=report/ut_coverage.out ./... 2>&1 | go-junit-report > report/$(UTReportName)
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
                   go tool cover --html=report/ut_coverage.out -o report/ut_coverage.html
-                  golangci-lint run --timeout 2m0s --out-format junit-xml ./... > report/$(LintReportName)
+                  golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
                   "
 
           - task: PublishBuildArtifacts@1  # 将相应目录publish到artifact
@@ -240,7 +240,6 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
-                      -v /root/.ssh/id_rsa:/root/.ssh/id_rsa \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -251,7 +250,7 @@ stages:
                   go test -gcflags=all=-l -v -coverprofile=report/ut_coverage.out ./... 2>&1 | go-junit-report > report/$(UTReportName)
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
                   go tool cover --html=report/ut_coverage.out -o report/ut_coverage.html
-                  golangci-lint run --timeout 2m0s --out-format junit-xml ./... > report/$(LintReportName)
+                  golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
                   "
 
           - task: PublishBuildArtifacts@1  # 将相应目录publish到artifact
@@ -425,7 +424,6 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
-                      -v /root/.ssh/id_rsa:/root/.ssh/id_rsa \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -437,7 +435,7 @@ stages:
                   go test -gcflags=all=-l -v -coverprofile=report/ut_coverage.out ./... 2>&1 | go-junit-report > report/$(UTReportName)
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
                   go tool cover --html=report/ut_coverage.out -o report/ut_coverage.html
-                  golangci-lint run --timeout 2m0s --out-format junit-xml ./... > report/$(LintReportName)
+                  golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
                   "
 
           - task: PublishBuildArtifacts@1  # 将相应目录publish到artifact

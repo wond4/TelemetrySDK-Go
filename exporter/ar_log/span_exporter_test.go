@@ -5,7 +5,13 @@ import (
 	"reflect"
 	"testing"
 
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
+	. "github.com/smartystreets/goconvey/convey"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestNewExporter(t *testing.T) {
@@ -90,4 +96,59 @@ func TestLogExporterExportLogs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestInitLogger(t *testing.T) {
+	//file, err := ioutil.ReadFile("C:\\Users\\frank.liu01\\GolandProjects\\TelemetrySDK-Go\\examples\\api_service\\ob-app-config-log.yaml")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//var data = config.YamlLogConfig{}
+	//if err := yaml.Unmarshal(file, &data); err != nil {
+	//	t.Error(err)
+	//	return
+	//}
+
+	config.CfgFileNameLog = "ob-app-config-log"
+	// 初始化配置
+	config.NewLogConfig()
+	config.LoadLogConfig()
+
+}
+
+func Test_loadConfigMapData(t *testing.T) {
+
+	Convey("测试加载configMap", t, func() {
+		var (
+			nameSpace = "default"
+			ctx       = context.Background()
+		)
+		client := fake.NewSimpleClientset()
+		_, _ = client.CoreV1().ConfigMaps(nameSpace).Create(ctx, &v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "cmConfig",
+			},
+			Data: map[string]string{
+				"ob": "xxx",
+			},
+		}, metav1.CreateOptions{})
+
+		Convey("正常加载", func() {
+			value, err := loadConfigMapData(ctx, client, nameSpace, "cmConfig", "ob")
+			So(err, ShouldBeNil)
+			So(value, ShouldEqual, "xxx")
+		})
+
+		Convey("异常configMap", func() {
+			_, err := loadConfigMapData(ctx, client, nameSpace, "xxx", "xxx")
+			So(err, ShouldBeError)
+		})
+
+		Convey("异常key", func() {
+			_, err := loadConfigMapData(ctx, client, nameSpace, "cmConfig", "xxx")
+			So(err, ShouldBeError)
+		})
+
+	})
 }
