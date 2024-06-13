@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	ar_log.InitLogger("yaml", "ob-app-config-log", "my-service-2")
+	ar_log.InitLogger("yaml", "log-sdk-config", "my-service-2")
 
 	ar_log.Info(context.Background(), "this is log")
 
