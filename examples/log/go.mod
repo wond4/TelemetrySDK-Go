@@ -1,4 +1,4 @@
-module main
+module examplelog
 
 go 1.20
 
@@ -7,7 +7,7 @@ require devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/ex
 require (
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5 // indirect
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5 // indirect
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar // indirect
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-3 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

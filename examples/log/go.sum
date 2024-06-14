@@ -4,8 +4,8 @@ devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240529052945-cd686b926938/go.mod h1:CQNQaFysDWllfPfm3HuHVtl8Dn+2a0VBhxwrd1vH4Dc=
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5 h1:h4sW3+ehigxVkdbQRO1o0SySQvRUvHPZowA8F2H3O3w=
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5/go.mod h1:xKwQ/MbNE/tJrb0wRTFeUDPQl8F/bEHzqwW+JPPfi1U=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar h1:495za870xa4+FMCMWxH2JKLrF1B7T2utwZFtFlzGM8w=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar/go.mod h1:qmyZuWAURpd2JzcdfHozQ+NwewRhPySXgAaB8bXs6TY=
+devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-3 h1:yhuYJ/twpoqXhxzbpxHQSUk8ReaQT959QjecN52Ajx0=
+devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-3/go.mod h1:qmyZuWAURpd2JzcdfHozQ+NwewRhPySXgAaB8bXs6TY=
 github.com/agiledragon/gomonkey v2.0.2+incompatible h1:eXKi9/piiC3cjJD1658mEE2o3NjkJ5vDLgYjCQu0Xlw=
 github.com/agiledragon/gomonkey/v2 v2.9.0 h1:PDiKKybR596O6FHW+RVSG0Z7uGCBNbmbUXh3uCNQ7Hc=
 github.com/avast/retry-go v3.0.0+incompatible h1:4SOWQ7Qs+oroOTQOYnAHqelpCO0biHSxpiH9JdtuBj0=
