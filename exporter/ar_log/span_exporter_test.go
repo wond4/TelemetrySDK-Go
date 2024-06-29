@@ -2,6 +2,8 @@ package ar_log
 
 import (
 	"context"
+	"github.com/agiledragon/gomonkey/v2"
+	"os"
 	"reflect"
 	"testing"
 
@@ -150,5 +152,28 @@ func Test_loadConfigMapData(t *testing.T) {
 			So(err, ShouldBeError)
 		})
 
+	})
+}
+
+func Test_getNamespace(t *testing.T) {
+	Convey("Test_getNamespace", t, func() {
+		Convey("读取环境变量", func() {
+			sth := gomonkey.ApplyFunc(os.Getenv, func(v ...interface{}) string {
+				return "TEST"
+			})
+			defer sth.Reset()
+			res, err := getNamespace()
+			So(err, ShouldBeNil)
+			So(res, ShouldEqual, "TEST")
+		})
+		Convey("读取文件", func() {
+			sth := gomonkey.ApplyFunc(os.ReadFile, func(v ...interface{}) ([]byte, error) {
+				return []byte("anyrobot"), nil
+			})
+			defer sth.Reset()
+			res, err := getNamespace()
+			So(err, ShouldBeNil)
+			So(res, ShouldEqual, "anyrobot")
+		})
 	})
 }
