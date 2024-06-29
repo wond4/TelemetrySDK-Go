@@ -86,8 +86,14 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 		if kubeClient != nil {
 			watchConfigMap(kubeClient)
 		}
+		//获取 nameSpace
+		currentNameSpace, err := getNamespace()
+		if err != nil {
+			fmt.Println(fmt.Sprintf("初始化SDK失败,必须设置环境变量PRODUCT_NAME或者在容器中运行！"))
+			return
+		}
 		//初始化Logger
-		Logger = initLoggerFromConfigMap(context.Background(), kubeClient, "default", cfgName, config.CmMapKeyLog, serverName)
+		Logger = initLoggerFromConfigMap(context.Background(), kubeClient, currentNameSpace, cfgName, config.CmMapKeyLog, serverName)
 	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
 		config.CfgFileNameLog = cfgName
 		// 初始化配置
@@ -124,6 +130,21 @@ func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 	logConfig.Exporters = lc.Exporters
 
 	return initARLogger(logConfig, serverName)
+}
+
+// getNamespace 获取当前POD的环境变量
+func getNamespace() (string, error) {
+	productName := os.Getenv("PRODUCT_NAME")
+	if len(productName) > 0 {
+		return productName, nil
+	}
+
+	namespaceFile := "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+	namespace, err := os.ReadFile(namespaceFile)
+	if err != nil {
+		return "", err
+	}
+	return string(namespace), nil
 }
 
 // Debug 拼接上文件、行号、函数名。用于日志记录时把位置信息带上
