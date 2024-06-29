@@ -158,7 +158,7 @@ func Test_loadConfigMapData(t *testing.T) {
 func Test_getNamespace(t *testing.T) {
 	Convey("Test_getNamespace", t, func() {
 		Convey("读取环境变量", func() {
-			sth := gomonkey.ApplyFunc(os.Getenv, func(v ...interface{}) string {
+			sth := gomonkey.ApplyFunc(os.Getenv, func(v string) string {
 				return "TEST"
 			})
 			defer sth.Reset()
@@ -167,7 +167,7 @@ func Test_getNamespace(t *testing.T) {
 			So(res, ShouldEqual, "TEST")
 		})
 		Convey("读取文件", func() {
-			sth := gomonkey.ApplyFunc(os.ReadFile, func(v ...interface{}) ([]byte, error) {
+			sth := gomonkey.ApplyFunc(os.ReadFile, func(v string) ([]byte, error) {
 				return []byte("anyrobot"), nil
 			})
 			defer sth.Reset()
