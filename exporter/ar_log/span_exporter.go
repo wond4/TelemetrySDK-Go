@@ -108,30 +108,6 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 
 }
 
-// initLoggerFromConfigMap 从configMap中加载配置信息
-func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, nameSpace string, cfgName, configMapKey, serverName string) spanLog.Logger {
-	var (
-		logConfig = &config.YamlLogConfig{Enabled: "false", Exporters: &config.ExportersTypConfig{}}
-		lc        = config.CmLogConfig{Exporters: &config.ExportersTypConfig{}}
-	)
-	//加载配置
-	data, err := loadConfigMapData(ctx, client, nameSpace, cfgName, configMapKey)
-	if err != nil {
-		fmt.Printf("[TelemetrySDK] initLoggerFromConfigMap loadConfigMapData error: %v", err)
-	}
-
-	if err = yaml.Unmarshal([]byte(data), &lc); err != nil {
-		fmt.Printf("[TelemetrySDK] initLoggerFromConfigMap Unmarshal error: %v", err)
-	}
-
-	logConfig.Enabled = config.GetLogEnabled(&lc)
-	logConfig.Endpoint = lc.Endpoint
-	logConfig.Level = lc.Level
-	logConfig.Exporters = lc.Exporters
-
-	return initARLogger(logConfig, serverName)
-}
-
 // getNamespace 获取当前POD的环境变量
 func getNamespace() (string, error) {
 	productName := os.Getenv("PRODUCT_NAME")
