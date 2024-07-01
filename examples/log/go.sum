@@ -1,7 +1,7 @@
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5 h1:JYXfNH9jjR1OJkLMwcvwLcC4r3LB8Pw5huKc3OqQTqI=
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5/go.mod h1:x4ION8llOP/2GxWcgdv7K/Ko5ntjH6nYFOUB9CCqUfg=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240529052945-cd686b926938 h1:cZDDjdBAuHccp40DC9kpvGxa30OUsYdmLdvSaOB5usU=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240529052945-cd686b926938/go.mod h1:CQNQaFysDWllfPfm3HuHVtl8Dn+2a0VBhxwrd1vH4Dc=
+devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240701020645-7488e38927b7 h1:DI/Qs6+wNxDUtIzMTZ/xcdmI+Pwv2bBCIb+QkhCMqUs=
+devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240701020645-7488e38927b7/go.mod h1:CQNQaFysDWllfPfm3HuHVtl8Dn+2a0VBhxwrd1vH4Dc=
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5 h1:h4sW3+ehigxVkdbQRO1o0SySQvRUvHPZowA8F2H3O3w=
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5/go.mod h1:xKwQ/MbNE/tJrb0wRTFeUDPQl8F/bEHzqwW+JPPfi1U=
 devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-3 h1:yhuYJ/twpoqXhxzbpxHQSUk8ReaQT959QjecN52Ajx0=
