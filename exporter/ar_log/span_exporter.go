@@ -134,8 +134,7 @@ func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 
 // getNameSpace 获取当前POD的环境变量
 func getNameSpace() (string, error) {
-	productName := os.Getenv("PRODUCT_NAME")
-	if len(productName) > 0 {
+	if productName := os.Getenv("PRODUCT_NAME"); len(productName) > 0 {
 		return productName, nil
 	}
 
