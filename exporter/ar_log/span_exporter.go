@@ -89,7 +89,7 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 		//获取 nameSpace
 		currentNameSpace, err := getNamespace()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("初始化SDK失败,必须设置环境变量PRODUCT_NAME或者在容器中运行！"))
+			fmt.Println("初始化SDK失败,必须设置环境变量PRODUCT_NAME或者在容器中运行！")
 			return
 		}
 		//初始化Logger
