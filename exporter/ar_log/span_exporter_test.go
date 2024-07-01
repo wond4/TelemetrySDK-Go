@@ -162,7 +162,7 @@ func Test_getNamespace(t *testing.T) {
 				return "TEST"
 			})
 			defer sth.Reset()
-			res, err := getNamespace()
+			res, err := getNameSpace()
 			So(err, ShouldBeNil)
 			So(res, ShouldEqual, "TEST")
 		})
@@ -171,7 +171,7 @@ func Test_getNamespace(t *testing.T) {
 				return []byte("anyrobot"), nil
 			})
 			defer sth.Reset()
-			res, err := getNamespace()
+			res, err := getNameSpace()
 			So(err, ShouldBeNil)
 			So(res, ShouldEqual, "anyrobot")
 		})

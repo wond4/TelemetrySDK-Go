@@ -87,7 +87,7 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 			watchConfigMap(kubeClient)
 		}
 		//获取 nameSpace
-		currentNameSpace, err := getNamespace()
+		currentNameSpace, err := getNameSpace()
 		if err != nil {
 			fmt.Println("初始化SDK失败,必须设置环境变量PRODUCT_NAME或者在容器中运行！")
 			return
@@ -132,8 +132,8 @@ func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 	return initARLogger(logConfig, serverName)
 }
 
-// getNamespace 获取当前POD的环境变量
-func getNamespace() (string, error) {
+// getNameSpace 获取当前POD的环境变量
+func getNameSpace() (string, error) {
 	productName := os.Getenv("PRODUCT_NAME")
 	if len(productName) > 0 {
 		return productName, nil
