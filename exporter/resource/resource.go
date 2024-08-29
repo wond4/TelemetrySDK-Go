@@ -1,6 +1,9 @@
 package resource
 
 import (
+	"net"
+	"strings"
+
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/eventsdk"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
@@ -9,8 +12,6 @@ import (
 	environment "go.opentelemetry.io/otel/sdk/resource"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
-	"net"
-	"strings"
 )
 
 // 用户未设置服务信息时的默认值，服务名可以自动获取。
