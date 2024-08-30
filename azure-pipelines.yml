@@ -69,7 +69,8 @@ stages:
                   ls -l report 
                   go tool cover --html=report/ut_coverage.out -o report/ut_coverage.html
                   ls -l report 
-                  # golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
+                  golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
+                  ls -l report 
                   "
 
           - task: PublishBuildArtifacts@1  # 将相应目录publish到artifact
