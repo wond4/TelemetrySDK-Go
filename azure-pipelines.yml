@@ -224,7 +224,6 @@ stages:
 
       - job: _4CodeCheck
         displayName: 4.代码检查(UT/Lint)
-        dependsOn: _3UploadSonarQube
         workspace:
           clean: all
         pool:
@@ -409,7 +408,6 @@ stages:
 
       - job: _7CodeCheck
         displayName: 7.代码检查(UT/Lint)
-        dependsOn: _6UploadSonarQube
         workspace:
           clean: all
         pool:
