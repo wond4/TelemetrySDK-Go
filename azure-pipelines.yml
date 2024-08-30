@@ -13,6 +13,7 @@ variables:
   - group: anyrobot-global-config
   - name: BUILD_IMAGE
 #    value: "acr.aishu.cn/ar/go.build:1.20.11-20231109"
+# TelmetrySDK 支持导出到 Proton-MQ,  Proton-MQ 需要一些依赖库，因此需要使用下面的定制镜像，否则无法跑通UT
     value: "acr.aishu.cn/public/golang:1.21.10-ubuntu22.04.20231012-2"
   - name: SONARQUBE_IMAGE
     value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:4.7"
