@@ -9,12 +9,11 @@ trigger:
   branches:
     include:
       - "*"
-
 variables:
   - group: anyrobot-global-config
   - name: BUILD_IMAGE
 #    value: "acr.aishu.cn/ar/go.build:1.20.11-20231109"
-    value: "acr.aishu.cn/public/golang:1.20.14-ubuntu22.04.20231012-2"
+    value: "acr.aishu.cn/public/golang:1.21.10-ubuntu22.04.20231012-2"
   - name: SONARQUBE_IMAGE
     value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:4.7"
   - name: LintReportName # 此行保持一致
@@ -68,10 +67,10 @@ stages:
                   ls -l report
                   gocov convert report/ut_coverage.out | gocov-xml > report/$(CoverageReportName)
                   ls -l report 
-                  # go tool cover --html=report/ut_coverage.out -o report/ut_coverage.html
-                  # ls -l report 
-                  # golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
-                  # ls -l report 
+                  go tool cover --html=report/ut_coverage.out -o report/ut_coverage.html
+                  ls -l report 
+                  golangci-lint run --timeout 5m0s --out-format junit-xml ./... > report/$(LintReportName)
+                  ls -l report 
                   "
 
           - task: PublishBuildArtifacts@1  # 将相应目录publish到artifact
