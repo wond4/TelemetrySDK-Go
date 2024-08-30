@@ -104,8 +104,7 @@ func StdoutMetricInit() {
 
 // 导出到数据接收器
 func HTTPMetricInit() {
-	public.SetServiceInfo("YourServiceName", "2.6.1", "983d7e1d5e8cda64")
-	metricClient := public.NewHTTPClient(public.WithAnyRobotURL("http://10.4.109.146:33050/api/feed_ingester/v1/jobs/test-otel-metric/events"),
+	metricClient := public.NewHTTPClient(public.WithAnyRobotURL("http://10.4.71.156/api/feed_ingester/v1/jobs/test-otel-metric/events"),
 		public.WithCompression(1), public.WithTimeout(10*time.Second), public.WithRetry(true, 5*time.Second, 30*time.Second, 1*time.Minute))
 	metricExporter := ar_metric.NewExporter(metricClient)
 	public.SetServiceInfo("YourServiceName", "1.0.0", "983d7e1d5e8cda64")
@@ -181,6 +180,7 @@ func WithAllExample() {
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(10*time.Second), sdkmetric.WithTimeout(10*time.Second))),
 		sdkmetric.WithResource(ar_metric.MetricResource()),
 	)
+
 	defer func() {
 		if err := metricProvider.Shutdown(ctx); err != nil {
 			log.Println(err)
