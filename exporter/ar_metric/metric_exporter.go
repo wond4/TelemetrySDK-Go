@@ -8,6 +8,8 @@ import (
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/common"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -21,7 +23,11 @@ var _ sdkmetric.Exporter = (*MetricExporter)(nil)
 var MetricProvider = (*sdkmetric.MeterProvider)(nil)
 
 // Meter 是一个全局变量，用于在业务代码中生产Metric。
-var Meter = metric.Meter(nil)
+var Meter = otel.GetMeterProvider().Meter(
+	version.MetricInstrumentationName,
+	metric.WithInstrumentationVersion(version.TelemetrySDKVersion),
+	metric.WithSchemaURL(version.MetricInstrumentationURL),
+)
 
 // MetricExporter 导出数据到AnyRobot Feed Ingester的 Metric 数据接收器。
 type MetricExporter struct {
