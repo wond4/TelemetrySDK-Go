@@ -239,7 +239,9 @@ func initARLogger(logConfig *config.YamlLogConfig, serverName string) {
 
 	oldLogger := Logger
 	Logger = ARLogger
-	oldLogger.Close()
+	if oldLogger != nil {
+		oldLogger.Close()
+	}
 }
 
 // getLogLevel Log配置转换为spanlog配置，默认不填的日志级别为warn
