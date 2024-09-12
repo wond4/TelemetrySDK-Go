@@ -183,6 +183,8 @@ func Fatal(ctx context.Context, msg string) {
 // logLevel 日志等级
 // ServerName 微服务名称
 func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Logger {
+	fmt.Printf("[TelemetrySDK]Init ARLogger Func Start\n")
+
 	if logConfig == nil {
 		return nil
 	}
@@ -200,11 +202,15 @@ func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Lo
 	// 初始化ar_log
 	var ARLogger = spanLog.NewSamplerLogger(spanLog.WithSample(1.0), spanLog.WithLevel(getLogLevel(logLevel)))
 
+	fmt.Printf("[TelemetrySDK]Init SpanLog Done\n")
+
 	// 设置微服务相关信息
 	if serverName != "" {
 		resource.SetServiceName(serverName)
 	}
 	resource.SetServiceInstance(serverInstance)
+
+	fmt.Printf("[TelemetrySDK]Set Service Done\n")
 
 	var systemLogWriter open_standard.Writer
 
@@ -214,18 +220,29 @@ func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Lo
 		ARLogger.Error(fmt.Sprintf("initARLogger 初始化initExporters数据有误，长度:%d", len(systemLogExporters)))
 		return nil
 	}
+
+	fmt.Printf("[TelemetrySDK]Init Exporter Done\n")
+
 	systemLogWriter = open_standard.OpenTelemetryWriter(
 		encoder.NewJsonEncoderWithExporters(systemLogExporters...),
 		resource.LogResource())
 
+	fmt.Printf("[TelemetrySDK]Init LogWriter Done\n")
+
 	systemLogRunner := sdkRuntime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
 	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
+
+	fmt.Printf("[TelemetrySDK]Init LogRunner Done\n")
 
 	go systemLogRunner.Run()
 	ARLogger.SetLevel(getLogLevel(logLevel))
 	ARLogger.SetRuntime(systemLogRunner)
 
+	fmt.Printf("[TelemetrySDK]Start LogRunner Done\n")
+
 	ARLogger.Info("AnyRobot Logger init success")
+
+	fmt.Printf("[TelemetrySDK]Init ARLogger Func All Complete\n")
 
 	return ARLogger
 }
@@ -305,8 +322,10 @@ func watchConfigMap(client *kubernetes.Clientset) {
 	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
 
 	go func() {
+		fmt.Printf("[TelemetrySDK]ConfigMap Watcher Goroutine Start\n")
 		var lc config.CmLogConfig
 		for event := range watcher.ResultChan() {
+			fmt.Printf("[TelemetrySDK]ConfigMap Event: %s\n", event.Type)
 			switch event.Type {
 			case watch.Added:
 				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
@@ -326,6 +345,7 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					Exporters: lc.Exporters,
 				}
 				Logger = initARLogger(logConfig, "")
+				fmt.Printf("[TelemetrySDK]ConfigMap Add Event Complate.\n")
 			case watch.Modified:
 				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
@@ -344,6 +364,7 @@ func watchConfigMap(client *kubernetes.Clientset) {
 					Exporters: lc.Exporters,
 				}
 				Logger = initARLogger(logConfig, "")
+				fmt.Printf("[TelemetrySDK]ConfigMap Modify Event Complate.\n")
 			case watch.Deleted:
 				logConfig := &config.YamlLogConfig{
 					Enabled:   "false",
@@ -353,10 +374,12 @@ func watchConfigMap(client *kubernetes.Clientset) {
 				}
 				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
 				Logger = initARLogger(logConfig, "")
+				fmt.Printf("[TelemetrySDK]ConfigMap Delete Event Complate.\n")
 			}
+			fmt.Printf("[TelemetrySDK]Deal Event: %s Complate\n", event.Type)
 		}
+		fmt.Printf("[TelemetrySDK]ConfigMap Watcher Goroutine Done\n")
 	}()
-
 }
 
 // initExportersFromEndpoint 兼容老版本endpont的配置
