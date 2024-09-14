@@ -334,7 +334,7 @@ func watchConfigMap(client *kubernetes.Clientset) {
 
 					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
 					if err != nil {
-						fmt.Printf("[TelemetrySDK]%s: error: %+v", time.Now().Format("2006-01-02 15:04:05"), err)
+						fmt.Printf("[TelemetrySDK]%s: error: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err)
 					}
 
 					by, _ := json.Marshal(&lc)
@@ -353,7 +353,7 @@ func watchConfigMap(client *kubernetes.Clientset) {
 
 					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
 					if err != nil {
-						fmt.Printf("[TelemetrySDK]%s: error: %+v", time.Now().Format("2006-01-02 15:04:05"), err)
+						fmt.Printf("[TelemetrySDK]%s: error: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err)
 					}
 
 					by, _ := json.Marshal(&lc)
