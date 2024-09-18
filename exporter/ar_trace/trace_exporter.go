@@ -28,6 +28,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -48,6 +49,11 @@ var te = &TraceExporter{}
 type TraceExporter struct {
 	*public.Exporter
 }
+
+var (
+	// traceClientModifyLock 修改 traceClient 对象的锁
+	traceClientModifyLock = sync.Mutex{}
+)
 
 // ExportSpans 批量发送AnyRobotSpans到AnyRobot Feed Ingester的Trace数据接收器。
 func (e *TraceExporter) ExportSpans(ctx context.Context, traces []sdktrace.ReadOnlySpan) error {
@@ -126,6 +132,9 @@ func InitSilentTracer(serverName string) {
 
 // UpdateTracerClient 更新全局链路数据记录器的数据发送客户端
 func UpdateTracerClient(traceEnabled string, traceEndpoint string) {
+	traceClientModifyLock.Lock()
+	defer traceClientModifyLock.Unlock()
+
 	if traceEnabled == "true" && traceEndpoint != "" {
 		traceClient := public.NewHTTPClient(public.WithAnyRobotURL(traceEndpoint),
 			public.WithCompression(1), public.WithTimeout(10*time.Second),
@@ -279,46 +288,58 @@ func EndSpan(ctx context.Context, err error) {
 
 func watchConfigMap(clientset *kubernetes.Clientset) {
 	configMapClient := clientset.CoreV1().ConfigMaps("")
-
-	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
-		return
-	}
-
-	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
+	fmt.Printf("[TelemetrySDK]%s: Starting to watch ConfigMaps...\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	go func() {
+		fmt.Printf("[TelemetrySDK]%s: ConfigMap Watcher Goroutine Start\n", time.Now().Format("2006-01-02 15:04:05"))
 		var tc config.CmTraceConfig
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
-				if err != nil {
-					fmt.Printf("[TelemetrySDK]error: %v", err)
+		// 无限循环，防止监听器异常退出
+		for {
+			// 监听指定ConfigMap
+			fmt.Printf("[TelemetrySDK]%s: Create ConfigMap Watcher\n", time.Now().Format("2006-01-02 15:04:05"))
+			watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
+			if err != nil {
+				fmt.Printf("[TelemetrySDK]%s: Failed to watch ConfigMaps: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
+				return
+			}
+
+			fmt.Printf("[TelemetrySDK]%s: Start Watch ConfigMap\n", time.Now().Format("2006-01-02 15:04:05"))
+			for event := range watcher.ResultChan() {
+				fmt.Printf("[TelemetrySDK]%s: ConfigMap Event: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Type)
+				switch event.Type {
+				case watch.Added:
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Added: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Object.(*corev1.ConfigMap).Name)
+
+					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
+					if err != nil {
+						fmt.Printf("[TelemetrySDK]%s: error: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err)
+					}
+
+					fmt.Printf("[TelemetrySDK]%s: Trace Config Content: %+v\n", time.Now().Format("2006-01-02 15:04:05"), &tc)
+
+					UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Add Event Complate.\n", time.Now().Format("2006-01-02 15:04:05"))
+				case watch.Modified:
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Modified: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Object.(*corev1.ConfigMap).Name)
+
+					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
+					if err != nil {
+						fmt.Printf("[TelemetrySDK]%s: error: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err)
+					}
+
+					fmt.Printf("[TelemetrySDK]%s: Trace Config Content: %+v\n", time.Now().Format("2006-01-02 15:04:05"), &tc)
+
+					UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Modify Event Complate.\n", time.Now().Format("2006-01-02 15:04:05"))
+				case watch.Deleted:
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Deleted: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Object.(*corev1.ConfigMap).Name)
+					UpdateTracerClient("false", "")
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Delete Event Complate.\n", time.Now().Format("2006-01-02 15:04:05"))
 				}
-
-				fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
-
-				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
-			case watch.Modified:
-				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
-
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyTrace]), &tc)
-				if err != nil {
-					fmt.Printf("[TelemetrySDK]error: %v", err)
-				}
-
-				fmt.Printf("[TelemetrySDK]Trace Config Content: %+v\n", &tc)
-
-				UpdateTracerClient(config.GetTraceEnabled(&tc), tc.Endpoint)
-			case watch.Deleted:
-				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				UpdateTracerClient("false", "")
 			}
 		}
+
 	}()
 
 }

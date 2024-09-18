@@ -39,8 +39,12 @@ func (c *ProtonMqClient) Path() string {
 
 // Stop 关闭发送器。
 func (c *ProtonMqClient) Stop(ctx context.Context) error {
-	c.client.Close()
-	close(c.stopCh)
+	if c.client != nil {
+		c.client.Close()
+	}
+	if c.stopCh != nil {
+		close(c.stopCh)
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -147,7 +151,7 @@ func NewProtonMqClient(config *config.ProtonMqExporterTyp) (Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ProtonMqClient{cfg: config, client: client, Broker: randomBroker}, nil
+	return &ProtonMqClient{cfg: config, client: client, Broker: randomBroker, stopCh: make(chan struct{})}, nil
 }
 
 func initProtonMqClient(config ProtonMqConfig) (msqclient.ProtonMQClient, error) {
