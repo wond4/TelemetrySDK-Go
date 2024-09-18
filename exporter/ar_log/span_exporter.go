@@ -37,14 +37,10 @@ var (
 	// Logger 全局程序日志记录器
 	Logger spanLog.Logger
 	// loggerLock 修改 Logger 对象的锁
-	loggerLock sync.Mutex
+	loggerLock = sync.Mutex{}
 	// BLogger 全局业务日志记录器
 	BLogger spanLog.Logger
 )
-
-func init() {
-	loggerLock = sync.Mutex{}
-}
 
 // SpanExporter 导出数据到AnyRobot Feed Ingester的 Log 数据接收器。
 type SpanExporter struct {

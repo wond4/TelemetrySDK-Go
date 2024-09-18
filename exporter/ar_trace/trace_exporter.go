@@ -52,12 +52,8 @@ type TraceExporter struct {
 
 var (
 	// traceClientModifyLock 修改 traceClient 对象的锁
-	traceClientModifyLock sync.Mutex
-)
-
-func init() {
 	traceClientModifyLock = sync.Mutex{}
-}
+)
 
 // ExportSpans 批量发送AnyRobotSpans到AnyRobot Feed Ingester的Trace数据接收器。
 func (e *TraceExporter) ExportSpans(ctx context.Context, traces []sdktrace.ReadOnlySpan) error {
