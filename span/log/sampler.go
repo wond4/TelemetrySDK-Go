@@ -8,6 +8,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -188,9 +189,10 @@ func (s *SamplerLogger) writeLogField(typ string, message, level field.Field, op
 		return
 	}
 	defer l.Signal()
-
+	fmt.Println("writeLogField done")
 	l.SetLogLevel(level)
 	record := newRecord(typ, message)
+	fmt.Println("writeLogField record done")
 	l.SetRecord(record)
 	l.SetOption(options...)
 
@@ -239,9 +241,11 @@ func (s *SamplerLogger) DebugField(message field.Field, typ string, options ...f
 // if LogSpan is nil, this interface will create a LogSpan
 // to log the info and signal the LogSpan.
 func (s *SamplerLogger) InfoField(message field.Field, typ string, options ...field.LogOptionFunc) {
+	fmt.Println("InfoField", s.LogLevel, !s.sampleCheck())
 	if InfoLevel < s.LogLevel || !s.sampleCheck() {
 		return
 	}
+	fmt.Println("InfoField done")
 	s.writeLogField(typ, message, InfoLevelString, options...)
 }
 
@@ -312,6 +316,7 @@ func (s *SamplerLogger) Info(message string, options ...field.LogOptionFunc) {
 	if InfoLevel < s.LogLevel || !s.sampleCheck() {
 		return
 	}
+	fmt.Println("InfoField done")
 	s.writeLog(message, InfoLevelString, options...)
 }
 
