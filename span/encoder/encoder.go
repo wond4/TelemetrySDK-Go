@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 	"unsafe"
@@ -327,11 +326,7 @@ func (js *JsonEncoder) write(f field.Field) error {
 
 // String2Bytes unsafe convert string to []byte, they point to the same memory
 func (js *JsonEncoder) string2Bytes(s string) []byte {
-	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	result := make([]byte, sh.Len)
-	bh := (*reflect.SliceHeader)(unsafe.Pointer(&result))
-	bh.Data = sh.Data
-	return result
+	return unsafe.Slice(unsafe.StringData(s), len(s))
 }
 
 func (js *JsonEncoder) safeWriteString(s string) (int, error) {

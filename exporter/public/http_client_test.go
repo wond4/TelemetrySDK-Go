@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -122,15 +121,15 @@ func TestHTTPClientUploadData(t *testing.T) {
 		if d.cfg.Path == "500" {
 			code := 500
 			return &http.Response{StatusCode: code,
-				Body:   ioutil.NopCloser(bytes.NewReader([]byte{})),
+				Body:   io.NopCloser(bytes.NewReader([]byte{})),
 				Header: map[string][]string{"Retry-After": {"12"}}}, config.RetryableError{Throttle: 12}
 		}
 		if len(d.cfg.Path) == 3 {
 			code, _ := strconv.Atoi(d.cfg.Path)
 			return &http.Response{StatusCode: code,
-				Body: ioutil.NopCloser(bytes.NewReader([]byte{}))}, nil
+				Body: io.NopCloser(bytes.NewReader([]byte{}))}, nil
 		}
-		return &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bytes.NewReader([]byte{}))}, nil
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader([]byte{}))}, nil
 	})
 	defer sth.Reset()
 
