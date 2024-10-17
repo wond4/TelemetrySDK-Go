@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
@@ -35,6 +36,8 @@ var _ exporter.SyncExporter = (*syncExporter)(nil)
 var (
 	// Logger 全局程序日志记录器
 	Logger spanLog.Logger
+	// loggerLock 修改 Logger 对象的锁
+	loggerLock = sync.Mutex{}
 	// BLogger 全局业务日志记录器
 	BLogger spanLog.Logger
 )
@@ -93,23 +96,23 @@ func InitLogger(cfgType string, cfgName string, serverName string) {
 			return
 		}
 		//初始化Logger
-		Logger = initLoggerFromConfigMap(context.Background(), kubeClient, currentNameSpace, cfgName, config.CmMapKeyLog, serverName)
+		initLoggerFromConfigMap(context.Background(), kubeClient, currentNameSpace, cfgName, config.CmMapKeyLog, serverName)
 	} else if cfgType == "yaml" { // 如果配置为yaml文件形式
 		config.CfgFileNameLog = cfgName
 		// 初始化配置
 		config.NewLogConfig()
-		Logger = initARLogger(config.YamlLogCfg, "")
+		initARLogger(config.YamlLogCfg, "")
 		config.LogVP.OnConfigChange(func(e fsnotify.Event) {
 			fmt.Printf("Log config file changed:%s, update logger\n", e)
 			config.LoadLogConfig()
-			Logger = initARLogger(config.YamlLogCfg, "")
+			initARLogger(config.YamlLogCfg, "")
 		})
 	}
 
 }
 
 // initLoggerFromConfigMap 从configMap中加载配置信息
-func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, nameSpace string, cfgName, configMapKey, serverName string) spanLog.Logger {
+func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, nameSpace string, cfgName, configMapKey, serverName string) {
 	var (
 		logConfig = &config.YamlLogConfig{Enabled: "false", Exporters: &config.ExportersTypConfig{}}
 		lc        = config.CmLogConfig{Exporters: &config.ExportersTypConfig{}}
@@ -129,7 +132,7 @@ func initLoggerFromConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 	logConfig.Level = lc.Level
 	logConfig.Exporters = lc.Exporters
 
-	return initARLogger(logConfig, serverName)
+	initARLogger(logConfig, serverName)
 }
 
 // getNameSpace 获取当前POD的nameSpace
@@ -182,9 +185,12 @@ func Fatal(ctx context.Context, msg string) {
 // logEndpoint 日志上报地址，为空则打印标准输出
 // logLevel 日志等级
 // ServerName 微服务名称
-func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Logger {
+func initARLogger(logConfig *config.YamlLogConfig, serverName string) {
+	loggerLock.Lock()
+	defer loggerLock.Unlock()
+
 	if logConfig == nil {
-		return nil
+		return
 	}
 
 	var (
@@ -212,12 +218,12 @@ func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Lo
 	systemLogExporters := initExporters(logConfig)
 	if len(systemLogExporters) <= 0 {
 		ARLogger.Error(fmt.Sprintf("initARLogger 初始化initExporters数据有误，长度:%d", len(systemLogExporters)))
-		return nil
+		return
 	}
+
 	systemLogWriter = open_standard.OpenTelemetryWriter(
 		encoder.NewJsonEncoderWithExporters(systemLogExporters...),
 		resource.LogResource())
-
 	systemLogRunner := sdkRuntime.NewRuntime(systemLogWriter, field.NewSpanFromPool)
 	systemLogRunner.SetUploadInternalAndMaxLog(3*time.Second, 10)
 
@@ -227,7 +233,11 @@ func initARLogger(logConfig *config.YamlLogConfig, serverName string) spanLog.Lo
 
 	ARLogger.Info("AnyRobot Logger init success")
 
-	return ARLogger
+	oldLogger := Logger
+	Logger = ARLogger
+	if oldLogger != nil {
+		oldLogger.Close()
+	}
 }
 
 // getLogLevel Log配置转换为spanlog配置，默认不填的日志级别为warn
@@ -295,68 +305,79 @@ func loadConfigMapData(ctx context.Context, cs kubernetes.Interface, nameSpace, 
 
 func watchConfigMap(client *kubernetes.Clientset) {
 	configMapClient := client.CoreV1().ConfigMaps("")
-
-	watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
-	if err != nil {
-		fmt.Printf("[TelemetrySDK]Failed to watch ConfigMaps: %+v\n", err.Error())
-		return
-	}
-
-	fmt.Println("[TelemetrySDK]Starting to watch ConfigMaps...")
+	fmt.Printf("[TelemetrySDK]%s: Starting to watch ConfigMaps...\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	go func() {
+		fmt.Printf("[TelemetrySDK]%s: ConfigMap Watcher Goroutine Start\n", time.Now().Format("2006-01-02 15:04:05"))
 		var lc config.CmLogConfig
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				fmt.Printf("[TelemetrySDK]ConfigMap Added: %s\n", event.Object.(*corev1.ConfigMap).Name)
 
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
-				if err != nil {
-					fmt.Printf("[TelemetrySDK]error: %v", err)
+		// 无限循环，防止监听器异常退出
+		for {
+			// 监听指定ConfigMap
+			fmt.Printf("[TelemetrySDK]%s: Create ConfigMap Watcher\n", time.Now().Format("2006-01-02 15:04:05"))
+			watcher, err := configMapClient.Watch(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("metadata.name=%s", config.CmName)})
+			if err != nil {
+				fmt.Printf("[TelemetrySDK]%s: Failed to watch ConfigMaps: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err.Error())
+				return
+			}
+
+			fmt.Printf("[TelemetrySDK]%s: Start Watch ConfigMap\n", time.Now().Format("2006-01-02 15:04:05"))
+			for event := range watcher.ResultChan() {
+				fmt.Printf("[TelemetrySDK]%s: ConfigMap Event: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Type)
+				switch event.Type {
+				case watch.Added:
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Added: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Object.(*corev1.ConfigMap).Name)
+
+					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
+					if err != nil {
+						fmt.Printf("[TelemetrySDK]%s: error: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err)
+					}
+
+					by, _ := json.Marshal(&lc)
+					fmt.Printf("[TelemetrySDK]%s: Log Config Content: %s\n", time.Now().Format("2006-01-02 15:04:05"), string(by))
+
+					logConfig := &config.YamlLogConfig{
+						Enabled:   config.GetLogEnabled(&lc),
+						Endpoint:  lc.Endpoint,
+						Level:     lc.Level,
+						Exporters: lc.Exporters,
+					}
+					initARLogger(logConfig, "")
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Add Event Complate.\n", time.Now().Format("2006-01-02 15:04:05"))
+				case watch.Modified:
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Modified: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Object.(*corev1.ConfigMap).Name)
+
+					err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
+					if err != nil {
+						fmt.Printf("[TelemetrySDK]%s: error: %+v\n", time.Now().Format("2006-01-02 15:04:05"), err)
+					}
+
+					by, _ := json.Marshal(&lc)
+					fmt.Printf("[TelemetrySDK]%s: Log Config Content: %s\n", time.Now().Format("2006-01-02 15:04:05"), string(by))
+
+					logConfig := &config.YamlLogConfig{
+						Enabled:   config.GetLogEnabled(&lc),
+						Endpoint:  lc.Endpoint,
+						Level:     lc.Level,
+						Exporters: lc.Exporters,
+					}
+					initARLogger(logConfig, "")
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Modify Event Complate.\n", time.Now().Format("2006-01-02 15:04:05"))
+				case watch.Deleted:
+					logConfig := &config.YamlLogConfig{
+						Enabled:   "false",
+						Endpoint:  "",
+						Level:     "",
+						Exporters: &config.ExportersTypConfig{},
+					}
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Deleted: %s\n", time.Now().Format("2006-01-02 15:04:05"), event.Object.(*corev1.ConfigMap).Name)
+					initARLogger(logConfig, "")
+					fmt.Printf("[TelemetrySDK]%s: ConfigMap Delete Event Complate.\n", time.Now().Format("2006-01-02 15:04:05"))
 				}
-
-				by, _ := json.Marshal(&lc)
-				fmt.Printf("[TelemetrySDK]Log Config Content: %s\n", string(by))
-
-				logConfig := &config.YamlLogConfig{
-					Enabled:   config.GetLogEnabled(&lc),
-					Endpoint:  lc.Endpoint,
-					Level:     lc.Level,
-					Exporters: lc.Exporters,
-				}
-				Logger = initARLogger(logConfig, "")
-			case watch.Modified:
-				fmt.Printf("[TelemetrySDK]ConfigMap Modified: %s\n", event.Object.(*corev1.ConfigMap).Name)
-
-				err := yaml.Unmarshal([]byte(event.Object.(*corev1.ConfigMap).Data[config.CmMapKeyLog]), &lc)
-				if err != nil {
-					fmt.Printf("[TelemetrySDK]error: %v", err)
-				}
-
-				by, _ := json.Marshal(&lc)
-				fmt.Printf("[TelemetrySDK]Log Config Content: %s\n", string(by))
-
-				logConfig := &config.YamlLogConfig{
-					Enabled:   config.GetLogEnabled(&lc),
-					Endpoint:  lc.Endpoint,
-					Level:     lc.Level,
-					Exporters: lc.Exporters,
-				}
-				Logger = initARLogger(logConfig, "")
-			case watch.Deleted:
-				logConfig := &config.YamlLogConfig{
-					Enabled:   "false",
-					Endpoint:  "",
-					Level:     "",
-					Exporters: &config.ExportersTypConfig{},
-				}
-				fmt.Printf("[TelemetrySDK]ConfigMap Deleted: %s\n", event.Object.(*corev1.ConfigMap).Name)
-				Logger = initARLogger(logConfig, "")
+				fmt.Printf("[TelemetrySDK]%s: Deal Event: %s Complate\n", time.Now().Format("2006-01-02 15:04:05"), event.Type)
 			}
 		}
 	}()
-
 }
 
 // initExportersFromEndpoint 兼容老版本endpont的配置
