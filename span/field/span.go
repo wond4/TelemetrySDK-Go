@@ -3,6 +3,7 @@ package field
 import (
 	"context"
 	"sync"
+	"time"
 
 	"go.opentelemetry.io/otel/trace"
 )
@@ -34,6 +35,8 @@ type LogSpan interface {
 	SetOption(...LogOptionFunc)
 
 	Free()
+
+	GetTimestamp() time.Time
 }
 
 type attribute struct {
@@ -57,6 +60,8 @@ type logSpanV1 struct {
 	//traceID    string
 	ctx        context.Context
 	attributes MapField
+
+	timestamp time.Time
 }
 
 var Pool = sync.Pool{
@@ -171,4 +176,8 @@ func (l *logSpanV1) SpanID() string {
 		return defaultSpanID
 	}
 	return l.getTraceSpan().SpanContext().SpanID().String()
+}
+
+func (l *logSpanV1) GetTimestamp() time.Time {
+	return l.timestamp
 }

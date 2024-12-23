@@ -67,7 +67,11 @@ func (o *OpenTelemetry) write(logSpans []field.LogSpan, flag int) error {
 		link.Set("TraceId", field.StringField(t.TraceID()))
 		link.Set("SpanId", field.StringField(t.SpanID()))
 		telemetry.Set("Link", link)
-		telemetry.Set("Timestamp", field.StringField(time.Now().Format(time.RFC3339Nano)))
+		if t.GetTimestamp().IsZero() {
+			telemetry.Set("Timestamp", field.StringField(time.Now().Format(time.RFC3339Nano)))
+		} else {
+			telemetry.Set("Timestamp", field.StringField(t.GetTimestamp().Format(time.RFC3339Nano)))
+		}
 		telemetry.Set("SeverityText", t.GetLogLevel())
 		telemetry.Set("Body", t.GetRecord())
 		telemetry.Set("Attributes", t.GetAttributes())

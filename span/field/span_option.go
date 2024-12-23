@@ -2,6 +2,7 @@ package field
 
 import (
 	"context"
+	"time"
 )
 
 type LogOptionFunc func(*logSpanV1)
@@ -23,5 +24,11 @@ func WithContext(ctx context.Context) LogOptionFunc {
 		if ctx != nil {
 			l.ctx = ctx
 		}
+	}
+}
+
+func WithTimestamp(timestamp time.Time) LogOptionFunc {
+	return func(l *logSpanV1) {
+		l.timestamp = timestamp
 	}
 }
