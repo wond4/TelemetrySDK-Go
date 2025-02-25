@@ -56,6 +56,7 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -241,6 +242,7 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -426,6 +428,7 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
