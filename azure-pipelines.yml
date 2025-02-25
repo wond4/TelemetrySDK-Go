@@ -16,7 +16,7 @@ variables:
 # TelmetrySDK 支持导出到 Proton-MQ,  Proton-MQ 需要一些依赖库，因此需要使用下面的定制镜像，否则无法跑通UT
     value: "acr.aishu.cn/public/golang:1.21.10-ubuntu22.04.20231012-2"
   - name: SONARQUBE_IMAGE
-    value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:4.7"
+    value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:11.1.1.1661_6.2.1"
   - name: LintReportName # 此行保持一致
     value: lint_report.xml
   - name: UTReportName # 此行保持一致
@@ -56,6 +56,7 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -241,6 +242,7 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -426,6 +428,7 @@ stages:
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
