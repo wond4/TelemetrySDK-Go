@@ -6,12 +6,19 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/cipters"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
 	"github.com/pkg/errors"
+)
+
+var (
+	initOnce  sync.Once
+	client    msqclient.ProtonMQClient
+	clientErr error
 )
 
 // ProtonMqClient 客户端结构体。
@@ -140,16 +147,19 @@ func NewProtonMqClient(config *config.ProtonMqExporterTyp) (Client, error) {
 		}
 	}
 
-	client, err := initProtonMqClient(ProtonMqConfig{
-		SubType:    config.Config.SubType,
-		BrokerIp:   pubServer,
-		BrokerPort: pubPort,
-		UserName:   username,
-		PassWord:   password,
-		opts:       opts,
+	initOnce.Do(func() {
+		client, clientErr = initProtonMqClient(ProtonMqConfig{
+			SubType:    config.Config.SubType,
+			BrokerIp:   pubServer,
+			BrokerPort: pubPort,
+			UserName:   username,
+			PassWord:   password,
+			opts:       opts,
+		})
 	})
-	if err != nil {
-		return nil, err
+
+	if clientErr != nil {
+		return nil, clientErr
 	}
 	return &ProtonMqClient{cfg: config, client: client, Broker: randomBroker, stopCh: make(chan struct{})}, nil
 }
