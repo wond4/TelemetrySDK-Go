@@ -1,8 +1,7 @@
 module examplelog
 
-go 1.21
+go 1.20
 
-toolchain go1.22.4
 
 require (
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240701020645-7488e38927b7
