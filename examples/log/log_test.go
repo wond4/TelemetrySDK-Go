@@ -2,12 +2,13 @@ package examplelog
 
 import (
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/sasl/plain"
 	"log"
 	"testing"
 	"time"
+
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl/plain"
 )
 
 func Benchmark_InfoWithProton(b *testing.B) {

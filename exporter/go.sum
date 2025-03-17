@@ -1,5 +1,5 @@
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-4 h1:W6BnVPienq0k/1nFFDTOBWAW2RcmIpv+cicEquyBjJ4=
-devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-4/go.mod h1:qmyZuWAURpd2JzcdfHozQ+NwewRhPySXgAaB8bXs6TY=
+devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.8.0-feature-743440-ar-rm-cgo h1:1obAQEhcRzhYr7D2lki8qtrVeL3qFhM4v16TAyTgY9o=
+devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.8.0-feature-743440-ar-rm-cgo/go.mod h1:d8qKnilcsSPNXcjqc2Razm14am1g+JbeKjNAehXIqgs=
 github.com/agiledragon/gomonkey v2.0.2+incompatible h1:eXKi9/piiC3cjJD1658mEE2o3NjkJ5vDLgYjCQu0Xlw=
 github.com/agiledragon/gomonkey v2.0.2+incompatible/go.mod h1:2NGfXu1a80LLr2cmWXGBDaHEjb1idR6+FVlX5T3D9hw=
 github.com/agiledragon/gomonkey/v2 v2.9.0 h1:PDiKKybR596O6FHW+RVSG0Z7uGCBNbmbUXh3uCNQ7Hc=
