@@ -15,8 +15,6 @@ variables:
   - name: BUILD_IMAGE
 #    value: "acr.aishu.cn/ar/go.build:1.20.11-20231109"
     value: "acr.aishu.cn/public/golang:1.20.14-ubuntu22.04.20231012-2"
-  - name: SONARQUBE_IMAGE
-    value: "acr.aishu.cn/public/sonarsource/sonar-scanner-cli:4.7"
   - name: LintReportName # 此行保持一致
     value: lint_report.xml
   - name: UTReportName # 此行保持一致
@@ -29,6 +27,20 @@ resources:
     - container: dotnet
       endpoint: acr-registry
       image: dotnet/runtime:3.1-bullseye-slim
+  repositories:
+    - repository: arPipelineTemplates
+      type: git
+      name: AnyRobot\PipelineTemplates
+      ref: "refs/heads/develop"
+
+parameters:
+  - name: SKIP_SONARQUBE
+    displayName: skip sonarqube
+    type: number
+    default: 0
+    values:
+      - 0
+      - 1
 
 stages:
   - stage: CodeCheck
@@ -53,9 +65,12 @@ stages:
               script: |
                 #!/usr/bin/env bash
                 set -ex
+                
+                cp $(Build.SourcesDirectory)/event/sonar-scanner.properties $(Build.SourcesDirectory)/sonar-scanner.properties 
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -74,6 +89,10 @@ stages:
             inputs:
               PathtoPublish: '$(Build.SourcesDirectory)/event/report'
               ArtifactName: CodeCheckReportFiles1
+
+          - template: sonarqube-setps.yml@arPipelineTemplates
+            parameters:
+              SKIP_SONARQUBE: ${{ parameters.SKIP_SONARQUBE }}
 
           - task: Post-Bash@3
             inputs:
@@ -161,66 +180,9 @@ stages:
               script: |
                 rm -rf $(Build.SourcesDirectory)
 
-      - job: _3UploadSonarQube
-        displayName: 3.上传SonarQube
-        dependsOn: _2UploadReport
-        workspace:
-          clean: all
-        pool:
-          name: ONE-Architecture-centos7.8-x86_64
-          demands:
-            - Agent.OS -equals Linux
-            - Agent.OSArchitecture -equals X64
-            - docker
-        steps:
-          - checkout: self
-          - task: DownloadBuildArtifacts@0
-            inputs:
-              artifactName: CodeCheckReportFiles1
-              downloadPath: $(Build.SourcesDirectory)
-
-          - task: Bash@3
-            displayName: 上传SonarQube
-            inputs:
-              targetType: 'inline'
-              script: |
-                #!/usr/bin/env bash
-                set -ex
-
-                APP_NAME="TelemetrySDK-Event-Go"
-                INCLUSION_DIR=""
-                EXCLUSION_DIR="**/errors/**,**/*_test.go,**/examples/**"
-                GLOBAL_EXCLUSION_DIR="**/report/**"
-
-                docker run --rm \
-                        -u root:root \
-                        -v $(pwd):/TelemetrySDK-Go \
-                        $(SONARQUBE_IMAGE) bash -c "
-                    set -ex
-
-                    cd /TelemetrySDK-Go
-                    mv CodeCheckReportFiles1 report
-                    sonar-scanner \
-                      -D sonar.host.url=$(sonarqube.server) \
-                      -D sonar.projectKey=${APP_NAME} \
-                      -D sonar.branch.name=$(Build.SourceBranchName) \
-                      -D sonar.sources=. \
-                      -D sonar.sonar.inclusions=${INCLUSION_DIR} \
-                      -D sonar.coverage.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.cpd.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.global.exclusions=${GLOBAL_EXCLUSION_DIR} \
-                      -D sonar.language=go \
-                      -D sonar.go.coverage.reportPaths=report/ut_coverage.out \
-                      -D sonar.login=$(sonarqube.token)
-                    "
-          - task: Post-Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                rm -rf $(Build.SourcesDirectory)
-
       - job: _4CodeCheck
         displayName: 4.代码检查(UT/Lint)
+        dependsOn: _2UploadReport
         workspace:
           clean: all
         pool:
@@ -238,9 +200,12 @@ stages:
               script: |
                 #!/usr/bin/env bash
                 set -ex
+                
+                cp $(Build.SourcesDirectory)/exporter/sonar-scanner.properties $(Build.SourcesDirectory)/sonar-scanner.properties 
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -259,6 +224,10 @@ stages:
             inputs:
               PathtoPublish: '$(Build.SourcesDirectory)/exporter/report'
               ArtifactName: CodeCheckReportFiles2
+
+          - template: sonarqube-setps.yml@arPipelineTemplates
+            parameters:
+              SKIP_SONARQUBE: ${{ parameters.SKIP_SONARQUBE }}
 
           - task: Post-Bash@3
             inputs:
@@ -346,66 +315,9 @@ stages:
               script: |
                 rm -rf $(Build.SourcesDirectory)
 
-      - job: _6UploadSonarQube
-        displayName: 6.上传SonarQube
-        dependsOn: _5UploadReport
-        workspace:
-          clean: all
-        pool:
-          name: ONE-Architecture-centos7.8-x86_64
-          demands:
-            - Agent.OS -equals Linux
-            - Agent.OSArchitecture -equals X64
-            - docker
-        steps:
-          - checkout: self
-          - task: DownloadBuildArtifacts@0
-            inputs:
-              artifactName: CodeCheckReportFiles2
-              downloadPath: $(Build.SourcesDirectory)
-
-          - task: Bash@3
-            displayName: 上传SonarQube
-            inputs:
-              targetType: 'inline'
-              script: |
-                #!/usr/bin/env bash
-                set -ex
-
-                APP_NAME="TelemetrySDK-Exporter-Go"
-                INCLUSION_DIR=""
-                EXCLUSION_DIR="**/errors/**,**/*_test.go,**/examples/**"
-                GLOBAL_EXCLUSION_DIR="**/report/**"
-
-                docker run --rm \
-                        -u root:root \
-                        -v $(pwd):/TelemetrySDK-Go \
-                        $(SONARQUBE_IMAGE) bash -c "
-                    set -ex
-
-                    cd /TelemetrySDK-Go
-                    mv CodeCheckReportFiles2 report
-                    sonar-scanner \
-                      -D sonar.host.url=$(sonarqube.server) \
-                      -D sonar.projectKey=${APP_NAME} \
-                      -D sonar.branch.name=$(Build.SourceBranchName) \
-                      -D sonar.sources=. \
-                      -D sonar.sonar.inclusions=${INCLUSION_DIR} \
-                      -D sonar.coverage.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.cpd.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.global.exclusions=${GLOBAL_EXCLUSION_DIR} \
-                      -D sonar.language=go \
-                      -D sonar.go.coverage.reportPaths=report/ut_coverage.out \
-                      -D sonar.login=$(sonarqube.token)
-                    "
-          - task: Post-Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                rm -rf $(Build.SourcesDirectory)
-
       - job: _7CodeCheck
         displayName: 7.代码检查(UT/Lint)
+        dependsOn: _5UploadReport
         workspace:
           clean: all
         pool:
@@ -423,9 +335,12 @@ stages:
               script: |
                 #!/usr/bin/env bash
                 set -ex
+                
+                cp $(Build.SourcesDirectory)/span/sonar-scanner.properties $(Build.SourcesDirectory)/sonar-scanner.properties 
 
                 docker run --rm \
                       -v $(pwd):/TelemetrySDK-Go \
+                      -e GOPROXY='$(go.proxy)' \
                       $(BUILD_IMAGE) bash -c "
                   set -ex
 
@@ -445,6 +360,10 @@ stages:
             inputs:
               PathtoPublish: '$(Build.SourcesDirectory)/span/report'
               ArtifactName: CodeCheckReportFiles3
+
+          - template: sonarqube-setps.yml@arPipelineTemplates
+            parameters:
+              SKIP_SONARQUBE: ${{ parameters.SKIP_SONARQUBE }}
 
           - task: Post-Bash@3
             inputs:
@@ -531,63 +450,3 @@ stages:
               targetType: inline
               script: |
                 rm -rf $(Build.SourcesDirectory)
-
-      - job: _9UploadSonarQube
-        displayName: 9.上传SonarQube
-        dependsOn: _8UploadReport
-        workspace:
-          clean: all
-        pool:
-          name: ONE-Architecture-centos7.8-x86_64
-          demands:
-            - Agent.OS -equals Linux
-            - Agent.OSArchitecture -equals X64
-            - docker
-        steps:
-          - checkout: self
-          - task: DownloadBuildArtifacts@0
-            inputs:
-              artifactName: CodeCheckReportFiles3
-              downloadPath: $(Build.SourcesDirectory)
-
-          - task: Bash@3
-            displayName: 上传SonarQube
-            inputs:
-              targetType: 'inline'
-              script: |
-                #!/usr/bin/env bash
-                set -ex
-
-                APP_NAME="TelemetrySDK-Span-Go"
-                INCLUSION_DIR=""
-                EXCLUSION_DIR="**/errors/**,**/*_test.go,**/examples/**,**/benchmarks/**"
-                GLOBAL_EXCLUSION_DIR="**/report/**"
-
-                docker run --rm \
-                        -u root:root \
-                        -v $(pwd):/TelemetrySDK-Go \
-                        $(SONARQUBE_IMAGE) bash -c "
-                    set -ex
-
-                    cd /TelemetrySDK-Go
-                    mv CodeCheckReportFiles3 report
-                    sonar-scanner \
-                      -D sonar.host.url=$(sonarqube.server) \
-                      -D sonar.projectKey=${APP_NAME} \
-                      -D sonar.branch.name=$(Build.SourceBranchName) \
-                      -D sonar.sources=. \
-                      -D sonar.sonar.inclusions=${INCLUSION_DIR} \
-                      -D sonar.coverage.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.cpd.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.global.exclusions=${GLOBAL_EXCLUSION_DIR} \
-                      -D sonar.exclusions=${EXCLUSION_DIR} \
-                      -D sonar.language=go \
-                      -D sonar.go.coverage.reportPaths=report/ut_coverage.out \
-                      -D sonar.login=$(sonarqube.token)
-                    "
-          - task: Post-Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                rm -rf $(Build.SourcesDirectory)
-
