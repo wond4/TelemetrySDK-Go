@@ -5,7 +5,7 @@ go 1.21
 require (
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.7.6-for-ar-rm-tlq9-4
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.8.3-0.20250402055411-ca6787fe8180
 	github.com/agiledragon/gomonkey/v2 v2.9.0
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/fsnotify/fsnotify v1.7.0
