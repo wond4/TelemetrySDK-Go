@@ -3,13 +3,21 @@ package ar_trace
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
+
+	eventV "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/version"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/common"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
-	"encoding/json"
-	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
@@ -24,13 +32,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"log"
-	"os"
-	"runtime"
-	"strings"
-	"sync"
-	"time"
 )
+
+func PrintEventVersion() {
+	fmt.Println(eventV.EventInstrumentationVersion)
+}
 
 // 跨包实现接口占位用。
 var _ sdktrace.SpanExporter = (*TraceExporter)(nil)
