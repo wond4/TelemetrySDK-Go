@@ -303,8 +303,14 @@ func loadConfigMapData(ctx context.Context, cs kubernetes.Interface, nameSpace, 
 	return configMapData, nil
 }
 
+var K8SClientNamespace = ""
+
+func SetK8SClientNamespace(namespace string) {
+	K8SClientNamespace = namespace
+}
+
 func watchConfigMap(client *kubernetes.Clientset) {
-	configMapClient := client.CoreV1().ConfigMaps("")
+	configMapClient := client.CoreV1().ConfigMaps(K8SClientNamespace)
 	fmt.Printf("[TelemetrySDK]%s: Starting to watch ConfigMaps...\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	go func() {
