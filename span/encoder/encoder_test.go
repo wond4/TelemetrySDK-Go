@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
+	"github.com/yuyoudong/TelemetrySDK-Go/span/v2/exporter"
+	"github.com/yuyoudong/TelemetrySDK-Got/span/v2/field"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
 	"github.com/stretchr/testify/assert"
 )
 

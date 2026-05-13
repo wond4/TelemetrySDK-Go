@@ -2,9 +2,9 @@ package open_standard
 
 import (
 	"bytes"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/encoder"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
+	github.com/yuyoudong/TelemetrySDK-Go/span/v2/encoder"
+	ggithub.com/yuyoudong/TelemetrySDK-Go
+	ggithub.com/yuyoudong/TelemetrySDK-Go
 	"encoding/json"
 	"fmt"
 	"testing"

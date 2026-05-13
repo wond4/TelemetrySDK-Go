@@ -1,9 +1,10 @@
 package encoder
 
 import (
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
 	"reflect"
 	"testing"
+
+	"github.com/yuyoudong/TelemetrySDK-Go/span/v2/exporter"
 )
 
 func TestNewSyncEncoder(t *testing.T) {

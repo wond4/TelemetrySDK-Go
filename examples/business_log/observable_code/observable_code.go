@@ -1,10 +1,11 @@
 package main
 
 import (
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
 	"fmt"
 	"time"
+
+	"github.com/yuyoudong/TelemetrySDK-Go/event/v2/field"
+	"github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/ar_log"
 )
 
 func main() {

@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_metric"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
+	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/ar_metric"
+	ggithub.com/yuyoudong/TelemetrySDK-Go
+	ggithub.com/yuyoudong/TelemetrySDK-Go
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"

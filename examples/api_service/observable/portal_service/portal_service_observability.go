@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_trace"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
+	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/ar_log"
+	ggithub.com/yuyoudong/TelemetrySDK-Go
+	ggithub.com/yuyoudong/TelemetrySDK-Go
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"

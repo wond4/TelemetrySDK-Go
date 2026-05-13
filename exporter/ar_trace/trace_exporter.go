@@ -3,11 +3,11 @@ package ar_trace
 import (
 	"bytes"
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/common"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
+	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/common"
+	ggithub.com/yuyoudong/TelemetrySDK-Go
+	ggithub.com/yuyoudong/TelemetrySDK-Go
+	ggithub.com/yuyoudong/TelemetrySDK-Go
+	ggithub.com/yuyoudong/TelemetrySDK-Go
 	"encoding/json"
 	"fmt"
 	"github.com/fsnotify/fsnotify"

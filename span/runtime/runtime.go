@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
+	github.com/yuyoudong/TelemetrySDK-Go/span/v2/field"
+	ggithub.com/yuyoudong/TelemetrySDK-Go
 )
 
 var (

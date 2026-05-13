@@ -2,7 +2,7 @@ package config
 
 import (
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/custom_errors"
+	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/custom_errors"
 	"errors"
 	"github.com/cenkalti/backoff/v4"
 	"log"

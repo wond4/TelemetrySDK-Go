@@ -3,9 +3,10 @@ package encoder
 import (
 	"bytes"
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
 	"log"
+
+	"github.com/yuyoudong/TelemetrySDK-Go/span/v2/exporter"
+	"github.com/yuyoudong/TelemetrySDK-Got/span/v2/field"
 )
 
 // SyncEncoder 同步模式专用，只能上报到一个地址。
