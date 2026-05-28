@@ -1,11 +1,10 @@
 package log
 
 import (
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
 	"math/rand"
 	"time"
-
-	"github.com/yuyoudong/TelemetrySDK-Go/span/v2/field"
-	"github.com/yuyoudong/TelemetrySDK-Got/span/v2/open_standard"
 )
 
 // SyncLogger 同步发送模式的日志器。

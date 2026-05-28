@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/json"
 
-	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/common"
-	ggithub.com/yuyoudong/TelemetrySDK-Go
-	ggithub.com/yuyoudong/TelemetrySDK-Go
-	ggithub.com/yuyoudong/TelemetrySDK-Go
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/common"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"

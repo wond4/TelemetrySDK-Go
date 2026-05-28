@@ -2,18 +2,17 @@ package ar_log
 
 import (
 	"context"
+	"github.com/agiledragon/gomonkey/v2"
 	"os"
 	"reflect"
 	"testing"
 
-	"github.com/agiledragon/gomonkey/v2"
-
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/config"
-	"github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/public"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 	"k8s.io/client-go/kubernetes/fake"
 )
 

@@ -5,9 +5,9 @@ import (
 	"net/url"
 	"time"
 
-	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/config"
-	ggithub.com/yuyoudong/TelemetrySDK-Go
-	ggithub.com/yuyoudong/TelemetrySDK-Go
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/custom_errors"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
 )
 
 // SetServiceInfo 设置服务信息，包括服务名、版本号、实例ID。

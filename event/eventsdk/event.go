@@ -1,16 +1,15 @@
 package eventsdk
 
 import (
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/custom_errors"
 	"encoding/json"
 	"errors"
+	"github.com/oklog/ulid/v2"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/oklog/ulid/v2"
-	"github.com/yuyoudong/TelemetrySDK-Go/event/v2/custom_errors"
-	"go.opentelemetry.io/otel/trace"
 )
 
 // Event 对外暴露的 event 接口。

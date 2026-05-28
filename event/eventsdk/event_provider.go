@@ -2,12 +2,11 @@ package eventsdk
 
 import (
 	"context"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/custom_errors"
 	"errors"
 	"log"
 	"sync"
 	"time"
-
-	"github.com/yuyoudong/TelemetrySDK-Go/event/v2/custom_errors"
 )
 
 // EventProvider 批量发送数据到 AnyRobot Feed Ingester 的Event数据接收器。

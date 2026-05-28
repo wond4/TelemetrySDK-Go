@@ -3,7 +3,7 @@ package ar_metric
 //
 //import (
 //	"context"
-//	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/public"
+//	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
 //	"go.opentelemetry.io/otel/sdk/metric"
 //	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 //	"go.opentelemetry.io/otel/sdk/metric/metricdata"

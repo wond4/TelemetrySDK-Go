@@ -1,9 +1,8 @@
 package eventsdk
 
 import (
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/version"
 	"encoding/json"
-
-	"github.com/yuyoudong/TelemetrySDK-Go/event/v2/version"
 )
 
 // Resource ，记录资源信息例如服务名、版本号、主机信息等。

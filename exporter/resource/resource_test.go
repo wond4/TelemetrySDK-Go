@@ -1,7 +1,7 @@
 package resource
 
 import (
-	github.com/yuyoudong/TelemetrySDK-Go/event/v2/eventsdk"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/eventsdk"
 	"github.com/shirou/gopsutil/v3/host"
 	"go.opentelemetry.io/otel/attribute"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"

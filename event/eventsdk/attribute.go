@@ -1,10 +1,9 @@
 package eventsdk
 
 import (
-	"net"
-
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/version"
 	"github.com/shirou/gopsutil/v3/host"
-	"github.com/yuyoudong/TelemetrySDK-Got/event/v2/version"
+	"net"
 )
 
 // Attribute 对外暴露的 attribute 接口。

@@ -3,13 +3,13 @@ module examplelog
 go 1.20
 
 require (
-	github.com/yuyoudong/TelemetrySDK-Got/exporter/v2 v2.7.1-0.20240701020645-7488e38927b7
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.1-0.20240701020645-7488e38927b7
 	github.com/segmentio/kafka-go v0.4.47
 )
 
 require (
-	github.com/yuyoudong/TelemetrySDK-Got/event/v2 v2.7.5 // indirect
-	github.com/yuyoudong/TelemetrySDK-Got/span/v2 v2.7.5 // indirect
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5 // indirect
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5 // indirect
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.8.2-for-ar-rm-cgo // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect

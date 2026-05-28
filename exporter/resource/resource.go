@@ -4,9 +4,9 @@ import (
 	"net"
 	"strings"
 
-	github.com/yuyoudong/TelemetrySDK-Go/event/v2/eventsdk"
-	ggithub.com/yuyoudong/TelemetrySDK-Go
-	ggithub.com/yuyoudong/TelemetrySDK-Go
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/eventsdk"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/version"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
 	"github.com/shirou/gopsutil/v3/host"
 	"go.opentelemetry.io/otel/attribute"
 	environment "go.opentelemetry.io/otel/sdk/resource"

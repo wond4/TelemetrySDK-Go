@@ -3,7 +3,7 @@ package public
 import (
 	"testing"
 
-	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/config"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
 )
 

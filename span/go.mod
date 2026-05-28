@@ -1,4 +1,4 @@
-module github.com/yuyoudong/TelemetrySDK-Got/span/v2
+module devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2
 
 go 1.21
 

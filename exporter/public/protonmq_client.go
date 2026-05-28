@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	github.com/yuyoudong/TelemetrySDK-Go/exporter/v2/cipters"
-	ggithub.com/yuyoudong/TelemetrySDK-Go
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/cipters"
+	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
 	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
 	"github.com/pkg/errors"
 )

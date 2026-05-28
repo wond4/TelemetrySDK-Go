@@ -1,10 +1,10 @@
-module github.com/yuyoudong/TelemetrySDK-Go/exporter/v2
+module devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2
 
 go 1.21
 
 require (
-	github.com/yuyoudong/TelemetrySDK-Go/event/v2 v2.7.5
-	github.com/yuyoudong/TelemetrySDK-Go/span/v2 v2.7.5
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5
 	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.8.3-for-ar-rm-cgo
 	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/cenkalti/backoff/v4 v4.2.1
@@ -27,8 +27,8 @@ require (
 )
 
 replace (
-	github.com/yuyoudong/TelemetrySDK-Got/event/v2 => ../event
-	github.com/yuyoudong/TelemetrySDK-Got/span/v2 => ../span
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 => ../event
+	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 => ../span
 )
 
 require (
