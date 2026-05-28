@@ -3,8 +3,8 @@ package encoder
 import (
 	"bytes"
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/exporter"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
+	"github.com/wond4/TelemetrySDK-Go/span/v2/exporter"
+	"github.com/wond4/TelemetrySDK-Go/span/v2/field"
 	"log"
 )
 

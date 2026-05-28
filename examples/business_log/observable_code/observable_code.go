@@ -1,8 +1,8 @@
 package main
 
 import (
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/ar_log"
+	"github.com/wond4/TelemetrySDK-Go/span/v2/field"
 	"fmt"
 	"time"
 )

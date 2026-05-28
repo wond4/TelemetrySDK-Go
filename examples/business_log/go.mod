@@ -1,19 +1,19 @@
-module devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/examples/business_log/v2
+module github.com/wond4/TelemetrySDK-Go/examples/business_log/v2
 
 go 1.19
 
 replace (
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 => ../../exporter
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 => ../../span
+	github.com/wond4/TelemetrySDK-Go/exporter/v2 => ../../exporter
+	github.com/wond4/TelemetrySDK-Go/span/v2 => ../../span
 )
 
 require (
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2 v2.7.5
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2 v2.7.5
+	github.com/wond4/TelemetrySDK-Go/exporter/v2 v2.7.5
+	github.com/wond4/TelemetrySDK-Go/span/v2 v2.7.5
 )
 
 require (
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2 v2.7.5 // indirect
+	github.com/wond4/TelemetrySDK-Go/event/v2 v2.7.5 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect

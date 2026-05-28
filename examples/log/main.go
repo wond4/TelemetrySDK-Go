@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/ar_log"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/ar_log"
 )
 
 func main() {

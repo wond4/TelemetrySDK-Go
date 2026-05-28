@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/encoder"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/field"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/span/v2/open_standard"
+	"github.com/wond4/TelemetrySDK-Go/span/v2/encoder"
+	"github.com/wond4/TelemetrySDK-Go/span/v2/field"
+	"github.com/wond4/TelemetrySDK-Go/span/v2/open_standard"
 
 	"github.com/stretchr/testify/assert"
 )

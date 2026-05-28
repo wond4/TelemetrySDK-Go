@@ -1,7 +1,7 @@
 package public
 
 import (
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/config"
 	"fmt"
 	"github.com/agiledragon/gomonkey/v2"
 	"log"

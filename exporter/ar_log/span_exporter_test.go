@@ -7,12 +7,12 @@ import (
 	"reflect"
 	"testing"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/config"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/config"
 	. "github.com/smartystreets/goconvey/convey"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/public"
 	"k8s.io/client-go/kubernetes/fake"
 )
 

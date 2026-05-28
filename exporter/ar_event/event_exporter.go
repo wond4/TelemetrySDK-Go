@@ -3,9 +3,9 @@ package ar_event
 import (
 	"bytes"
 	"context"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/eventsdk"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/public"
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/exporter/v2/resource"
+	"github.com/wond4/TelemetrySDK-Go/event/v2/eventsdk"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/public"
+	"github.com/wond4/TelemetrySDK-Go/exporter/v2/resource"
 	"encoding/json"
 )
 

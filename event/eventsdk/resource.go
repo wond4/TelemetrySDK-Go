@@ -1,7 +1,7 @@
 package eventsdk
 
 import (
-	"devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/TelemetrySDK-Go.git/event/v2/version"
+	"github.com/wond4/TelemetrySDK-Go/event/v2/version"
 	"encoding/json"
 )
 
