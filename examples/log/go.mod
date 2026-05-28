@@ -3,14 +3,14 @@ module examplelog
 go 1.20
 
 require (
-	github.com/wond4/TelemetrySDK-Go/exporter/v2 v2.7.1-0.20240701020645-7488e38927b7
 	github.com/segmentio/kafka-go v0.4.47
 )
 
+replace (
+	github.com/wond4/TelemetrySDK-Go/exporter/v2 => ../exporter
+)
+
 require (
-	github.com/wond4/TelemetrySDK-Go/event/v2 v2.7.5 // indirect
-	github.com/wond4/TelemetrySDK-Go/span/v2 v2.7.5 // indirect
-	github.com/wond4/proton-mq-go v1.8.2-for-ar-rm-cgo // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

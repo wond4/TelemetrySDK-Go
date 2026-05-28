@@ -12,8 +12,8 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/viper v1.18.1
 	github.com/stretchr/testify v1.9.0
-	github.com/wond4/TelemetrySDK-Go/event/v2 v2.7.5
-	github.com/wond4/TelemetrySDK-Go/span/v2 v2.7.5
+	github.com/wond4/TelemetrySDK-Go/event/v2 v2.0.0-00010101000000-000000000000
+	github.com/wond4/TelemetrySDK-Go/span/v2 v2.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/sdk v1.29.0

@@ -1,4 +1,4 @@
-package examplelog
+package main
 
 import (
 	"context"

@@ -3,7 +3,6 @@ module github.com/wond4/TelemetrySDK-Go/examples/api_service/v2
 go 1.19
 
 require (
-	github.com/wond4/TelemetrySDK-Go/exporter/v2 v2.7.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.2.3
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.46.1
@@ -13,8 +12,6 @@ require (
 )
 
 require (
-	github.com/wond4/TelemetrySDK-Go/event/v2 v2.7.5 // indirect
-	github.com/wond4/TelemetrySDK-Go/span/v2 v2.7.5 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
