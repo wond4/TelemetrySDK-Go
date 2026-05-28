@@ -3,9 +3,6 @@ module github.com/wond4/TelemetrySDK-Go/exporter/v2
 go 1.21
 
 require (
-	github.com/wond4/TelemetrySDK-Go/event/v2 v2.7.5
-	github.com/wond4/TelemetrySDK-Go/span/v2 v2.7.5
-	devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go v1.8.3-for-ar-rm-cgo
 	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/fsnotify/fsnotify v1.7.0
@@ -15,6 +12,8 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/viper v1.18.1
 	github.com/stretchr/testify v1.9.0
+	github.com/wond4/TelemetrySDK-Go/event/v2 v2.7.5
+	github.com/wond4/TelemetrySDK-Go/span/v2 v2.7.5
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/sdk v1.29.0
@@ -95,6 +94,7 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
+	github.com/wond4/proton-mq-go v0.0.0-20260528095636-2da2cd489220
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect

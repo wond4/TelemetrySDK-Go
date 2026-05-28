@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/wond4/TelemetrySDK-Go/exporter/v2/config"
-	msqclient "devops.aishu.cn/AISHUDevOps/ONE-Architecture/_git/proton-mq-go"
+	msqclient "github.com/wond4/proton-mq-go"
 )
 
 var (
