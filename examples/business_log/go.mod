@@ -62,7 +62,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/wond4/TelemetrySDK-Go/event/v2 v2.0.0-00010101000000-000000000000 // indirect
+	github.com/wond4/TelemetrySDK-Go/event/v2 v2.10.2 // indirect
 	github.com/wond4/proton-mq-go v0.0.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect

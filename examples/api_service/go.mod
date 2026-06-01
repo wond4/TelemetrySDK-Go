@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.2.3
-	github.com/wond4/TelemetrySDK-Go/exporter/v2 v2.0.0-00010101000000-000000000000
+	github.com/wond4/TelemetrySDK-Go/exporter/v2 v2.10.2
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.46.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1
 	gorm.io/driver/sqlite v1.5.4
@@ -80,8 +80,8 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.2.3 // indirect
-	github.com/wond4/TelemetrySDK-Go/event/v2 v2.0.0-00010101000000-000000000000 // indirect
-	github.com/wond4/TelemetrySDK-Go/span/v2 v2.0.0-00010101000000-000000000000 // indirect
+	github.com/wond4/TelemetrySDK-Go/event/v2 v2.10.2 // indirect
+	github.com/wond4/TelemetrySDK-Go/span/v2 v2.10.2 // indirect
 	github.com/wond4/proton-mq-go v0.0.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
